@@ -9,6 +9,7 @@ import es.uji.connectedweather.servers.OpenWeatherMapServer;
 public class MainFrame
 {
 	
+	@SuppressWarnings("unused")
 	private IWeatherServer usingServer;
 	private IWeatherServer[] servers;
 	private MainFrameDesign design;

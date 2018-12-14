@@ -8,6 +8,7 @@ public class MainFrameDesign extends JFrame
 	private static final long serialVersionUID = 2869286737217332104L;
 	private JComboBox<String> serversComboBox;
 	private JPanel contentPanel;
+	@SuppressWarnings("unused")
 	private MainFrame mainFrame;
 	
 	public MainFrameDesign(MainFrame mainFrame)
