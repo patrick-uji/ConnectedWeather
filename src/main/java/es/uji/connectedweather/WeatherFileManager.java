@@ -10,7 +10,7 @@ public class WeatherFileManager
 		//...
 	}
 	
-	public Map<String, String> loadFromFile(String city)
+	public Map<String, String> loadFromFile(String filePath)
 	{
 		return null;
 	}

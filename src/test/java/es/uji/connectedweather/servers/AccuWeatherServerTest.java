@@ -1,4 +1,4 @@
-package es.uji.connectedweather.test;
+package es.uji.connectedweather.servers;
 
 public class AccuWeatherServerTest
 {
