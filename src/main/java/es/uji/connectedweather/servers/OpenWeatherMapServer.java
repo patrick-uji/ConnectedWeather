@@ -1,5 +1,6 @@
 package es.uji.connectedweather.servers;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ public class OpenWeatherMapServer implements IWeatherServer
 	private static final String BASE_URL = "http://api.openweathermap.org/data/2.5/";
 	private static final String FORECAST_URL = BASE_URL + "forecast?appid=" + API_KEY;
 	private static final String CURRENT_WEATHER_URL = BASE_URL + "weather?appid=" + API_KEY;
+	@SuppressWarnings("unused")
 	private static final String HISTORICAL_URL = BASE_URL + "history/city?appid=" + API_KEY;
 	
 	@Override
@@ -32,6 +34,10 @@ public class OpenWeatherMapServer implements IWeatherServer
 			map.put("country", Utils.readJSONObject(data, "sys", "country").toString());
 			map.put("city", data.get("name").toString());
 			map.put("precipitation", "N/A");
+		}
+		catch (FileNotFoundException e) 
+		{
+			return null;
 		}
 		catch (IOException | ParseException e)
 		{
