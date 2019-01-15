@@ -1,10 +1,12 @@
 package es.uji.connectedweather;
 
+import java.security.InvalidParameterException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JComboBox;
 
-import es.uji.connectedweather.dataStructure.WeatherData;
 import es.uji.connectedweather.servers.AccuWeatherServer;
 import es.uji.connectedweather.servers.ApixuServer;
 import es.uji.connectedweather.servers.IWeatherServer;
@@ -13,7 +15,6 @@ import es.uji.connectedweather.servers.OpenWeatherMapServer;
 public class MainFrame
 {
 	
-	@SuppressWarnings("unused")
 	private IWeatherServer usingServer;
 	private IWeatherServer[] servers;
 	private MainFrameDesign design;
@@ -31,10 +32,11 @@ public class MainFrame
 		{
 			serversComboBox.addItem(currWeatherServer.getName());
 		}
-		show();
+		usingServer = servers[0];
 	}
 	
 	public void setServer(IWeatherServer server) {
+		if (server == null) throw new InvalidParameterException();
 		usingServer = server;
 	}
 	
@@ -46,8 +48,20 @@ public class MainFrame
 		}
 	}
 	
-	public WeatherData getCurrentWeather(String city, List<String> params) {
-		return null;
+	public Map<String, String> getCurrentWeather(String city, List<String> params) {
+		if (city == null || params == null) throw new NullPointerException();
+		if (params.size() <= 0) throw new InvalidParameterException();
+		Map<String, String> dev = new HashMap<String, String>();
+		Map<String, String> weatherData = usingServer.getCurrentWeather(city);
+		if (weatherData == null) throw new InvalidParameterException();
+		for (String param:params) {
+			if (weatherData.containsKey(param)) {
+				dev.put(param, weatherData.get(param));
+			}else {
+				throw new InvalidParameterException();
+			}
+		}
+		return dev;
 	}
 	
 }
