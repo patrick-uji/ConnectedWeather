@@ -1,6 +1,5 @@
 package es.uji.connectedweather.servers;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
@@ -24,6 +23,7 @@ public class OpenWeatherMapServer implements IWeatherServer
 	@Override
 	public Map<String, String> getCurrentWeather(String city)
 	{
+		if (city == null) throw new NullPointerException();
 		HashMap<String, String> map = new HashMap<String, String>();
 		try
 		{
@@ -35,13 +35,10 @@ public class OpenWeatherMapServer implements IWeatherServer
 			map.put("city", data.get("name").toString());
 			map.put("precipitation", "N/A");
 		}
-		catch (FileNotFoundException e) 
-		{
-			return null;
-		}
 		catch (IOException | ParseException e)
 		{
 			e.printStackTrace();
+			return null;
 		}
 		return map;
 	}
@@ -58,7 +55,7 @@ public class OpenWeatherMapServer implements IWeatherServer
 		map.put("min_temp", weatherData.get("temp_min").toString());
 		map.put("max_temp", weatherData.get("temp_max").toString());
 		map.put("wind", windData.get("speed").toString());
-		map.put("wind_degree", windData.get("deg").toString());
+		map.put("wind_degree", windData.get("deg").toString()); //Comprobar <------------- :(
 		map.put("clouds", Utils.readJSONObject(data, "clouds", "all").toString());
 	}
 
@@ -66,6 +63,7 @@ public class OpenWeatherMapServer implements IWeatherServer
 	@SuppressWarnings("unchecked")
 	public Map<String, String>[] getNextWeekWeather(String city)
 	{
+		if (city == null) throw new NullPointerException();
 		HashMap<String, String>[] maps = new HashMap[5];
 		try
 		{
@@ -93,6 +91,7 @@ public class OpenWeatherMapServer implements IWeatherServer
 		catch (IOException | ParseException e)
 		{
 			e.printStackTrace();
+			return null;
 		}
 		return maps;
 	}

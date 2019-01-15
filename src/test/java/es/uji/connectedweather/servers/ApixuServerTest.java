@@ -1,23 +1,22 @@
 package es.uji.connectedweather.servers;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import org.junit.Before;
+import org.junit.Test;
+import es.uji.connectedweather.servers.IWeatherServer;
+import static org.junit.Assert.*;
 
 import java.time.LocalDate;
 
-import org.junit.Before;
-import org.junit.Test;
-
-public class AccuWeatherServerTest
+public class ApixuServerTest
 {
+	
 	private IWeatherServer server;
 	private LocalDate date;
 	private String city;
 	
 	@Before
 	public void setConfiguration() {
-		server = new AccuWeatherServer();
+		server = new ApixuServer();
 		date = LocalDate.now().minusDays(1);
 		city = "Madrid";
 	}
@@ -31,20 +30,18 @@ public class AccuWeatherServerTest
 	}
 	
 	@Test
-	public void getCurrentWeather_invalidCity_null()
+	public void getCurrentWeather_invalidCity_diccionarioNulo()
 	{
-		city = "asdgdssdf";
-		assertNull(server.getCurrentWeather(city));
+		assertNull(server.getCurrentWeather("asdgdssdf"));
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void getCurrentWeather_nullCity_nullPointerException()
 	{
-		city = null;
-		server.getCurrentWeather(city);
+		server.getCurrentWeather(null);
 		fail("Expected NullPointerException");
 	}
-	
+
 	//Testing getNextWeekWeather
 	
 	@Test
@@ -103,24 +100,4 @@ public class AccuWeatherServerTest
 		fail("Expected NullPointerException");
 	}
 	
-	//Testing getAlerts
-	
-	@Test
-	public void getAlerts_normal_ok()
-	{
-		assertNotNull(server.getAlerts(city));
-	}
-	
-	@Test
-	public void getAlerts_invalidCity_null()
-	{
-		assertNull(server.getAlerts("asdgdssdf"));
-	}
-	
-	@Test(expected = NullPointerException.class)
-	public void getAlerts_nullCity_nullPoidaysToSubtractnterException()
-	{
-		server.getAlerts(null);
-		fail("Expected NullPointerException");
-	}
 }
