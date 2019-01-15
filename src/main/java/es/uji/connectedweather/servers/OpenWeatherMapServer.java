@@ -55,8 +55,14 @@ public class OpenWeatherMapServer implements IWeatherServer
 		map.put("min_temp", weatherData.get("temp_min").toString());
 		map.put("max_temp", weatherData.get("temp_max").toString());
 		map.put("wind", windData.get("speed").toString());
-		map.put("wind_degree", windData.get("deg").toString()); //Comprobar <------------- :(
+		map.put("wind_degree", safeFieldGet(windData, "deg")); //For some reason the "deg" field seems to be missing now...
 		map.put("clouds", Utils.readJSONObject(data, "clouds", "all").toString());
+	}
+	
+	private String safeFieldGet(JSONObject jsonObject, String key)
+	{
+		Object field = jsonObject.get(key);
+		return field != null ? field.toString() : "N/A";
 	}
 
 	@Override

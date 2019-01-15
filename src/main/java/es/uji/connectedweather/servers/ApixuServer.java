@@ -108,12 +108,8 @@ public class ApixuServer implements IWeatherServer
 	public Map<String, String> getHistoricalData(String city, LocalDate date)
 	{
 		if (city == null) throw new NullPointerException();
-		if (date.getYear() >= 2015)
+		if (date.getYear() >= 2015 && date.compareTo(LocalDate.now()) < 0)
 		{
-			if (date.getYear() == LocalDate.now().getYear() &&
-					date.getDayOfYear() == LocalDate.now().getDayOfYear()) {
-				return null;
-			}
 			HashMap<String, String> map = new HashMap<String, String>();
 			try
 			{
