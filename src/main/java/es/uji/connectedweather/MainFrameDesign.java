@@ -3,12 +3,14 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JComboBox;
+import com.github.lgooddatepicker.components.DatePicker;
 public class MainFrameDesign extends JFrame
 {
 	private static final long serialVersionUID = 2869286737217332104L;
 	private JComboBox<String> serversComboBox;
 	private JPanel contentPanel;
 	private MainFrame mainFrame;
+	private DatePicker datePicker;
 	
 	public MainFrameDesign(MainFrame mainFrame)
 	{
@@ -36,8 +38,13 @@ public class MainFrameDesign extends JFrame
 		contentPanel.setLayout(null);
 		
 		serversComboBox = new JComboBox<String>();
-		serversComboBox.setBounds(10, 11, 83, 20);
+		serversComboBox.setBounds(10, 10, 83, 20);
 		contentPanel.add(serversComboBox);
+		
+		datePicker = new DatePicker();
+		datePicker.setLocation(10, 40);
+		datePicker.setSize(170, 20);
+		contentPanel.add(datePicker);
 	}
 	
 }
