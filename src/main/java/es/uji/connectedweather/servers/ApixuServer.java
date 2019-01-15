@@ -22,6 +22,7 @@ public class ApixuServer implements IWeatherServer
 	@Override
 	public Map<String, String> getCurrentWeather(String city)
 	{
+		if (city == null) throw new NullPointerException();
 		HashMap<String, String> map = new HashMap<String, String>();
 		try
 		{
@@ -46,6 +47,7 @@ public class ApixuServer implements IWeatherServer
 		catch (IOException | ParseException e)
 		{
 			e.printStackTrace();
+			return null;
 		}
 		return map;
 	}
@@ -54,6 +56,7 @@ public class ApixuServer implements IWeatherServer
 	@SuppressWarnings("unchecked")
 	public Map<String, String>[] getNextWeekWeather(String city)
 	{
+		if (city == null) throw new NullPointerException();
 		HashMap<String, String>[] maps = new HashMap[5];
 		try
 		{
@@ -85,6 +88,7 @@ public class ApixuServer implements IWeatherServer
 		catch (IOException | ParseException e)
 		{
 			e.printStackTrace();
+			return null;
 		}
 		return maps;
 	}
@@ -103,8 +107,13 @@ public class ApixuServer implements IWeatherServer
 	@Override
 	public Map<String, String> getHistoricalData(String city, LocalDate date)
 	{
+		if (city == null) throw new NullPointerException();
 		if (date.getYear() >= 2015)
 		{
+			if (date.getYear() == LocalDate.now().getYear() &&
+					date.getDayOfYear() == LocalDate.now().getDayOfYear()) {
+				return null;
+			}
 			HashMap<String, String> map = new HashMap<String, String>();
 			try
 			{
@@ -139,6 +148,7 @@ public class ApixuServer implements IWeatherServer
 			catch (IOException | ParseException e)
 			{
 				e.printStackTrace();
+				return null;
 			}
 			return map;
 		}

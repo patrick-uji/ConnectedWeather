@@ -1,5 +1,6 @@
 package es.uji.connectedweather;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.security.InvalidParameterException;
@@ -15,29 +16,29 @@ import es.uji.connectedweather.servers.IWeatherServer;
 public class MainFrameTest {
 	
 	private MainFrame mainFrame;
-	
 	private IWeatherServer mockServer;
+	private String city;
+	private List<String> params;
 	
 	@Before
 	public void setConfiguration() {
 		mockServer = Mockito.mock(IWeatherServer.class);
 		mainFrame = new MainFrame();
+		city = "Madrid";
+		params = new ArrayList<String>();
 	}
 	
 	//Testing getCurrentWeather
 	
 	@Test
 	public void getCurrentWeather_normal_weatherData() {
-		String city = "Sagunto";
-		List<String> params = new ArrayList<String>();
 		params.add("temperature");
 		mainFrame.getCurrentWeather(city, params);
 	}
 	
 	@Test(expected=NullPointerException.class)
 	public void getCurrentWeather_nullCity_nullPointerException() {
-		String city = null;
-		List<String> params = new ArrayList<String>();
+		city = null;
 		params.add("temperature");
 		mainFrame.getCurrentWeather(city, params);
 		fail("Expected NullPointerException");
@@ -46,7 +47,6 @@ public class MainFrameTest {
 	@Test(expected=InvalidParameterException.class)
 	public void getCurrentWeather_invalidCity_invalidParameterException() {
 		String city = "kjhdfjkd";
-		List<String> params = new ArrayList<String>();
 		params.add("temperature");
 		mainFrame.getCurrentWeather(city, params);
 		fail("Expected InvalidParameterException");
@@ -54,18 +54,14 @@ public class MainFrameTest {
 	
 	@Test(expected=NullPointerException.class)
 	public void getCurrentWeather_nullParameters_nullPointerException(){
-		String city = "Sagunto";
-		List<String> params = null;
+		params = null;
 		mainFrame.getCurrentWeather(city, params);
 		fail("Expected NullPointerException");
 	}
 	
-	@Test(expected=InvalidParameterException.class)
-	public void getCurrentWeather_invalidParameter_invalidParameterException() {
-		String city = "Sagunto";
-		List<String> params = new ArrayList<String>();
-		mainFrame.getCurrentWeather(city, params);
-		fail("Expected InvalidParameterException");
+	@Test
+	public void getCurrentWeather_emptyParams_returnAll() {
+		assertNotNull(mainFrame.getCurrentWeather(city, params));
 	}
 	
 	//Testing setServer

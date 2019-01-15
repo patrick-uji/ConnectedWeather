@@ -116,10 +116,10 @@ public class MainFrame
 	
 	public Map<String, String> getCurrentWeather(String city, List<String> params) {
 		if (city == null || params == null) throw new NullPointerException();
-		if (params.size() <= 0) throw new InvalidParameterException();
-		Map<String, String> dev = new HashMap<String, String>();
 		Map<String, String> weatherData = usingServer.getCurrentWeather(city);
+		if (params.size() <= 0) return weatherData;
 		if (weatherData == null) throw new InvalidParameterException();
+		Map<String, String> dev = new HashMap<String, String>();
 		for (String param:params) {
 			if (weatherData.containsKey(param)) {
 				dev.put(param, weatherData.get(param));
