@@ -53,11 +53,13 @@ public class Utils
         return response.toString();
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static <T extends JSONAware> T parseJSON(String json) throws ParseException
 	{
 		return (T)JSON_PARSER.parse(json);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static <T> T readJSONObject(JSONObject jsonObject, String... keys)
 	{
 		int lastIndex = keys.length - 1;
