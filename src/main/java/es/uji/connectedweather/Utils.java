@@ -1,11 +1,21 @@
 package es.uji.connectedweather;
 
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+import javax.swing.JOptionPane;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -69,6 +79,68 @@ public class Utils
 			currJSONObject = (JSONObject)currJSONObject.get(keys[currKeyIndex]);
 		}
 		return (T)currJSONObject.get(keys[lastIndex]);
+	}
+	
+	public static <T> T timeoutTask(Callable<T> callable, int timeout, TimeUnit timeUnit, Consumer<Future<T>> callback) throws TimeoutException, InterruptedException, ExecutionException
+	{
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<T> future = executor.submit(callable);
+		try
+		{
+			return future.get(timeout, timeUnit);
+        }
+		catch (TimeoutException ex)
+		{
+			callback.accept(future);
+			return null;
+        }
+		catch (InterruptedException | ExecutionException ex)
+		{
+			throw ex;
+		}
+	}
+	
+	public static void showAudioMessageDialog(String message, String title, int messageType)
+	{
+		playDialogAudio(messageType);
+		JOptionPane.showMessageDialog(null, message, title, messageType);
+	}
+	
+	public static int showAudioConfirmDialog(String message, String title, int optionType, int messageType)
+	{
+		playDialogAudio(messageType);
+		return JOptionPane.showConfirmDialog(null, message, title, optionType, messageType);
+	}
+	
+	public static void playDialogAudio(int messageType)
+	{
+		String soundPropertyName;
+		switch (messageType)
+		{
+			case JOptionPane.ERROR_MESSAGE:
+				soundPropertyName = "win.sound.hand";
+			break;
+			case JOptionPane.INFORMATION_MESSAGE:
+				soundPropertyName = "win.sound.asterisk";
+			break;
+			case JOptionPane.WARNING_MESSAGE:
+				soundPropertyName = "win.sound.exclamation";
+			break;
+			case JOptionPane.QUESTION_MESSAGE:
+				soundPropertyName = "win.sound.question";
+			break;
+			default:
+				soundPropertyName = null;
+			break;
+		}
+		if (soundPropertyName != null)
+		{
+			Runnable runnable = (Runnable)Toolkit.getDefaultToolkit().getDesktopProperty(soundPropertyName);
+	        if (runnable != null)
+	    	{
+		    	runnable.run(); 
+	    	}
+		}
 	}
 	
 }

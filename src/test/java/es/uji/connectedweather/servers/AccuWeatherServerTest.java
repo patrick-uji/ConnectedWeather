@@ -45,24 +45,24 @@ public class AccuWeatherServerTest
 		fail("Expected NullPointerException");
 	}
 	
-	//Testing getNextWeekWeather
+	//Testing getWeatherForecast
 	
 	@Test
-	public void getNextWeekWeather_normal_ok()
+	public void getWeatherForecast_normal_ok()
 	{
-		assertNotNull(server.getNextWeekWeather(city));
+		assertNotNull(server.getWeatherForecast(city));
 	}
 	
 	@Test
-	public void getNextWeekWeather_invalidCity_diccionarioNulo()
+	public void getWeatherForecast_invalidCity_diccionarioNulo()
 	{
-		assertNull(server.getNextWeekWeather("asdgdssdf"));
+		assertNull(server.getWeatherForecast("asdgdssdf"));
 	}
 	
 	@Test(expected = NullPointerException.class)
-	public void getNextWeekWeather_nullCity_nullPoidaysToSubtractnterException()
+	public void getWeatherForecast_nullCity_nullPoidaysToSubtractnterException()
 	{
-		server.getNextWeekWeather(null);
+		server.getWeatherForecast(null);
 		fail("Expected NullPointerException");
 	}
 	

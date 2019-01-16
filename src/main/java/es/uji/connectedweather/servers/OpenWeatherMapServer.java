@@ -29,6 +29,7 @@ public class OpenWeatherMapServer implements IWeatherServer
 		{
 			String response = Utils.makeGETRequest(new URL(CURRENT_WEATHER_URL + "&q=" + city));
 			JSONObject data = Utils.parseJSON(response);
+			map.put("date", LocalDate.now().toString());
 			populateWeatherData(map, data);
 			map.put("visibility", data.get("visibility").toString());
 			map.put("country", Utils.readJSONObject(data, "sys", "country").toString());
@@ -67,7 +68,7 @@ public class OpenWeatherMapServer implements IWeatherServer
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, String>[] getNextWeekWeather(String city)
+	public Map<String, String>[] getWeatherForecast(String city)
 	{
 		if (city == null) throw new NullPointerException();
 		HashMap<String, String>[] maps = new HashMap[5];

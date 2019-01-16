@@ -30,6 +30,7 @@ public class ApixuServer implements IWeatherServer
 			JSONObject data = Utils.parseJSON(response);
 			JSONObject locationData = (JSONObject)data.get("location");
 			JSONObject weatherData = (JSONObject)data.get("current");
+			map.put("date", LocalDate.now().toString());
 			map.put("city", locationData.get("name").toString());
 			map.put("country", locationData.get("country").toString());
 			map.put("temperature", weatherData.get("temp_c").toString());
@@ -54,7 +55,7 @@ public class ApixuServer implements IWeatherServer
 	
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, String>[] getNextWeekWeather(String city)
+	public Map<String, String>[] getWeatherForecast(String city)
 	{
 		if (city == null) throw new NullPointerException();
 		HashMap<String, String>[] maps = new HashMap[5];

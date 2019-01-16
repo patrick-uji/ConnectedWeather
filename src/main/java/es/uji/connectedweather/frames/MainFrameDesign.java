@@ -1,4 +1,4 @@
-package es.uji.connectedweather;
+package es.uji.connectedweather.frames;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -39,7 +39,9 @@ public class MainFrameDesign extends JFrame
 	private JTable historicalDataTable;
 	private JLabel temperaturUnitsLabel;
 	private JList<String> parameterList;
+	private JTabbedPane forecastDayTabs;
 	private JTable[] forecastDataTables;
+	private JButton saveWeatherDataButton;
 	private JTable currentWeatherDataTable;
 	private JButton addFavouriteCityButton;
 	private JButton editFavouriteCityButton;
@@ -48,6 +50,7 @@ public class MainFrameDesign extends JFrame
 	private JButton removeFavouriteCityButton;
 	private JComboBox<String> serviceComboBox;
 	private JComboBox<String> temperatureUnitsBox;
+	private JButton openSettingsButton;
 	
 	public MainFrameDesign(MainFrame mainFrame)
 	{
@@ -110,6 +113,11 @@ public class MainFrameDesign extends JFrame
 		return currentWeatherDataTable;
 	}
 	
+	public JTabbedPane getForecastDayTabs()
+	{
+		return forecastDayTabs;
+	}
+	
 	public JTable getForecastDataTable(int index)
 	{
 		return forecastDataTables[index];
@@ -135,6 +143,11 @@ public class MainFrameDesign extends JFrame
 		return parameterList;
 	}
 	
+	public JButton getSaveWeatherDataButton()
+	{
+		return saveWeatherDataButton;
+	}
+	
 	/**
 	 * Create the frame.
 	 */
@@ -148,7 +161,7 @@ public class MainFrameDesign extends JFrame
 		});
 		this.forecastDataTables = new JTable[5];
 		setResizable(false);
-		setTitle("ConnectedWeather");
+		setTitle("EI1048 - ConnectedWeather");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 519, 470);
 		contentPanel = new JPanel();
@@ -219,11 +232,11 @@ public class MainFrameDesign extends JFrame
 		});
 		addFavouriteCityButton.setEnabled(false);
 		addFavouriteCityButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-		addFavouriteCityButton.setBounds(352, 9, 60, 23);
+		addFavouriteCityButton.setBounds(355, 10, 60, 23);
 		contentPanel.add(addFavouriteCityButton);
 		
 		JLabel serviceLabel = new JLabel("Service:");
-		serviceLabel.setBounds(180, 42, 46, 14);
+		serviceLabel.setBounds(180, 43, 46, 14);
 		contentPanel.add(serviceLabel);
 		
 		serviceComboBox = new JComboBox<String>();
@@ -233,9 +246,9 @@ public class MainFrameDesign extends JFrame
 			}
 		});
 		serviceComboBox.setModel(new DefaultComboBoxModel<String>(new String[] {"Current Weather", "Weather Forecast", "Historical Data", "Weather Alarms"}));
-		serviceComboBox.setBounds(225, 39, 120, 20);
+		serviceComboBox.setBounds(225, 40, 120, 20);
 		contentPanel.add(serviceComboBox);
-		favouriteCitiesList.setBounds(10, 40, 115, 128);
+		favouriteCitiesList.setBounds(10, 40, 115, 205);
 		contentPanel.add(favouriteCitiesList);
 		
 		editFavouriteCityBox = new JTextField();
@@ -258,7 +271,7 @@ public class MainFrameDesign extends JFrame
 		});
 		editFavouriteCityBox.setEnabled(false);
 		editFavouriteCityBox.setColumns(10);
-		editFavouriteCityBox.setBounds(10, 175, 115, 20);
+		editFavouriteCityBox.setBounds(10, 255, 115, 20);
 		contentPanel.add(editFavouriteCityBox);
 		
 		editFavouriteCityButton = new JButton("Rename");
@@ -269,7 +282,7 @@ public class MainFrameDesign extends JFrame
 		});
 		editFavouriteCityButton.setEnabled(false);
 		editFavouriteCityButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-		editFavouriteCityButton.setBounds(10, 200, 115, 20);
+		editFavouriteCityButton.setBounds(10, 280, 115, 20);
 		contentPanel.add(editFavouriteCityButton);
 		
 		parameterList = new JList<String>();
@@ -283,7 +296,7 @@ public class MainFrameDesign extends JFrame
 		});
 		removeFavouriteCityButton.setEnabled(false);
 		removeFavouriteCityButton.setFont(new Font("Tahoma", Font.BOLD, 11));
-		removeFavouriteCityButton.setBounds(10, 225, 115, 20);
+		removeFavouriteCityButton.setBounds(10, 305, 115, 20);
 		contentPanel.add(removeFavouriteCityButton);
 		//parameterListModel.addElement("date");
 		parameterList.setModel(parameterListModel);
@@ -293,7 +306,7 @@ public class MainFrameDesign extends JFrame
 
 		JPanel currentWeatherPanel = new JPanel();
 		currentWeatherPanel.setBorder(new LineBorder(new Color(0, 0, 0)));
-		currentWeatherPanel.setBounds(135, 71, 240, 255);
+		currentWeatherPanel.setBounds(135, 70, 240, 255);
 		contentPanel.add(currentWeatherPanel);
 		currentWeatherPanel.setLayout(new BorderLayout(0, 0));
 		
@@ -303,7 +316,7 @@ public class MainFrameDesign extends JFrame
 		
 		JPanel weatherForecastPanel = new JPanel();
 		weatherForecastPanel.setBorder(new LineBorder(new Color(0, 0, 0)));
-		weatherForecastPanel.setBounds(135, 71, 240, 255);
+		weatherForecastPanel.setBounds(135, 70, 240, 255);
 		weatherForecastPanel.setVisible(false);
 		contentPanel.add(weatherForecastPanel);
 		weatherForecastPanel.setLayout(new BorderLayout(0, 0));
@@ -311,7 +324,7 @@ public class MainFrameDesign extends JFrame
 		JTable newTable;
 		int currForecastIndex = 0;
 		int nextForecastIndex = 1;
-		JTabbedPane forecastDayTabs = new JTabbedPane(JTabbedPane.TOP);
+		forecastDayTabs = new JTabbedPane(JTabbedPane.TOP);
 		while (currForecastIndex < forecastDataTables.length)
 		{
 			newTable = new JTable();
@@ -325,7 +338,7 @@ public class MainFrameDesign extends JFrame
 		
 		JPanel historicalDataPanel = new JPanel();
 		historicalDataPanel.setBorder(new LineBorder(new Color(0, 0, 0)));
-		historicalDataPanel.setBounds(135, 71, 240, 255);
+		historicalDataPanel.setBounds(135, 70, 240, 255);
 		historicalDataPanel.setVisible(false);
 		contentPanel.add(historicalDataPanel);
 		historicalDataPanel.setLayout(new BorderLayout(0, 0));
@@ -339,7 +352,7 @@ public class MainFrameDesign extends JFrame
 		
 		JPanel weatherAlertsPanel = new JPanel();
 		weatherAlertsPanel.setBorder(new LineBorder(new Color(0, 0, 0)));
-		weatherAlertsPanel.setBounds(135, 71, 240, 255);
+		weatherAlertsPanel.setBounds(135, 70, 240, 255);
 		weatherAlertsPanel.setVisible(false);
 		contentPanel.add(weatherAlertsPanel);
 		weatherAlertsPanel.setLayout(new BorderLayout(0, 0));
@@ -356,6 +369,25 @@ public class MainFrameDesign extends JFrame
 		temperaturUnitsLabel = new JLabel("Temperature units:");
 		temperaturUnitsLabel.setBounds(370, 157, 97, 14);
 		contentPanel.add(temperaturUnitsLabel);
+		
+		openSettingsButton = new JButton("Open Settings...");
+		openSettingsButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mainFrame.openSettingsButton_Click(e);
+			}
+		});
+		openSettingsButton.setBounds(135, 335, 150, 23);
+		contentPanel.add(openSettingsButton);
+		
+		saveWeatherDataButton = new JButton("Save");
+		saveWeatherDataButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mainFrame.saveWeatherDataButton_Click(e);
+			}
+		});
+		saveWeatherDataButton.setEnabled(false);
+		saveWeatherDataButton.setBounds(295, 335, 80, 23);
+		contentPanel.add(saveWeatherDataButton);
 		
 		this.servicePanels = new JPanel[] {
 				currentWeatherPanel, weatherForecastPanel, historicalDataPanel, weatherAlertsPanel

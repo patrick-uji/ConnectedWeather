@@ -23,7 +23,7 @@ public class FileFavouriteCityPersistance implements IFavouriteCityPersistance
 		{
 			for (String currCity : cities)
 			{
-				favouriteCityWriter.write(currCity + "\n");
+				favouriteCityWriter.write(currCity + "\r\n"); //\r\n to properly display it on Window's notepad
 			}
 		}
 	}

@@ -46,21 +46,21 @@ public class OpenWeatherMapServerTest {
 	@Test
 	public void getNextWeekWeather_normal_ok()
 	{
-		assertNotNull(server.getNextWeekWeather(city));
+		assertNotNull(server.getWeatherForecast(city));
 	}
 	
 	@Test
 	public void getNextWeekWeather_invalidCity_diccionarioNulo()
 	{
 		city = "asdgdssdf";
-		assertNull(server.getNextWeekWeather(city));
+		assertNull(server.getWeatherForecast(city));
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void getNextWeekWeather_nullCity_nullPointerException()
 	{
 		city = null;
-		server.getNextWeekWeather(city);
+		server.getWeatherForecast(city);
 		fail("Expected NullPointerException");
 	}
 	

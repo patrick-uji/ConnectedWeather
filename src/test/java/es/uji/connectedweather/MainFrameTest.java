@@ -10,7 +10,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
+import es.uji.connectedweather.frames.MainFrame;
 import es.uji.connectedweather.servers.IWeatherServer;
 
 public class MainFrameTest {

@@ -45,6 +45,7 @@ public class AccuWeatherServer implements IWeatherServer
 			CityInfo cityInfo = queryCity(city);
 			String response = Utils.makeGETRequest(new URL(CURRENT_WEATHER_URL + cityInfo.key + "?details=true&apikey=" + API_KEY));
 			JSONObject data = (JSONObject)Utils.<JSONArray>parseJSON(response).get(0);
+			map.put("date", LocalDate.now().toString());
 			map.put("city", cityInfo.name);
 			map.put("country", cityInfo.country);
 			populateData(map, data);
@@ -83,7 +84,7 @@ public class AccuWeatherServer implements IWeatherServer
 	
 	@Override
 	@SuppressWarnings("unchecked")
-	public Map<String, String>[] getNextWeekWeather(String city)
+	public Map<String, String>[] getWeatherForecast(String city)
 	{
 		if (city == null) throw new NullPointerException();
 		HashMap<String, String>[] maps = new HashMap[5];
