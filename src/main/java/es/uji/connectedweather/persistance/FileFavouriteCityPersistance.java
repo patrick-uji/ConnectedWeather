@@ -7,9 +7,21 @@ import java.util.List;
 import java.util.Scanner;
 public class FileFavouriteCityPersistance implements IFavouriteCityPersistance
 {
+	private String file = "favourites.txt";
+	
+	public void setFile(String file) 
+	{
+		this.file = file;
+	}
+	public String getFile() 
+	{
+		return file;
+	}
+	
 	public void loadFavouriteCities(List<String> targetList) throws FileNotFoundException, IOException
 	{
-		try ( Scanner favouriteCityReader = new Scanner(new File("favourites.txt")) )
+		targetList.clear();
+		try ( Scanner favouriteCityReader = new Scanner(new File(file)) )
 		{
 			while (favouriteCityReader.hasNextLine())
 			{
@@ -19,7 +31,7 @@ public class FileFavouriteCityPersistance implements IFavouriteCityPersistance
 	}
 	public void saveFavouriteCities(List<String> cities) throws IOException
 	{
-		try ( FileWriter favouriteCityWriter = new FileWriter(new File("favourites.txt")) )
+		try ( FileWriter favouriteCityWriter = new FileWriter(new File(file)) )
 		{
 			for (String currCity : cities)
 			{

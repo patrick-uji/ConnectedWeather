@@ -1,5 +1,6 @@
 package es.uji.connectedweather.servers;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -49,6 +50,10 @@ public class AccuWeatherServer implements IWeatherServer
 			map.put("city", cityInfo.name);
 			map.put("country", cityInfo.country);
 			populateData(map, data);
+		}
+		catch (FileNotFoundException ex) //404, city not found
+		{
+			return null;
 		}
 		catch (IOException | ParseException ex)
 		{
@@ -123,6 +128,10 @@ public class AccuWeatherServer implements IWeatherServer
 				maps[currDayIndex] = map;
 			}
 		}
+		catch (FileNotFoundException ex) //404, city not found
+		{
+			return null;
+		}
 		catch (IOException | ParseException ex)
 		{
 			ex.printStackTrace();
@@ -146,6 +155,10 @@ public class AccuWeatherServer implements IWeatherServer
 				JSONObject historicalData = (JSONObject)data.get(data.size() - 1);
 				map.put("date", historicalData.get("LocalObservationDateTime").toString().split("T")[0]);
 				populateData(map, historicalData);
+			}
+			catch (FileNotFoundException ex) //404, city not found
+			{
+				return null;
 			}
 			catch (IOException | ParseException ex)
 			{
@@ -172,6 +185,10 @@ public class AccuWeatherServer implements IWeatherServer
 			map.put("message", headlineData.get("Text").toString());
 			map.put("category", headlineData.get("Category").toString());
 			map.put("end_date", headlineData.get("EndDate").toString().split("T")[0]);
+		}
+		catch (FileNotFoundException ex) //404, city not found
+		{
+			return null;
 		}
 		catch (IOException | ParseException ex)
 		{
