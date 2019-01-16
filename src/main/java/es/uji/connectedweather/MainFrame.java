@@ -2,22 +2,25 @@ package es.uji.connectedweather;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowEvent;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import es.uji.connectedweather.adapters.SwingListModelAsList;
+import es.uji.connectedweather.persistance.FileFavouriteCityPersistance;
+import es.uji.connectedweather.persistance.IFavouriteCityPersistance;
 import es.uji.connectedweather.servers.AccuWeatherServer;
 import es.uji.connectedweather.servers.ApixuServer;
 import es.uji.connectedweather.servers.IWeatherServer;
@@ -28,6 +31,8 @@ public class MainFrame
 	
 	private static final Color DARK_GREEN = new Color(0, 192, 0);
 	private static final Color DARK_ORANGE = new Color(255, 160, 0);
+	private IFavouriteCityPersistance favouriteCitiesPersistance;
+	private List<String> favouriteCitiesList;
 	private IWeatherServer usingServer;
 	private List<String> parameterList;
 	private IWeatherServer[] servers;
@@ -38,10 +43,11 @@ public class MainFrame
 	{
 		JComboBox<String> serversComboBox;
 		this.design = new MainFrameDesign(this);
+		this.favouriteCitiesPersistance = new FileFavouriteCityPersistance();
 		this.servers = new IWeatherServer[] {
-				new OpenWeatherMapServer(),
-				new AccuWeatherServer(),
-				new ApixuServer()
+			new OpenWeatherMapServer(),
+			new AccuWeatherServer(),
+			new ApixuServer()
 		};
 		this.design.getDatePicker().setDateToToday();
 		serversComboBox = design.getServersComboBox();
@@ -53,7 +59,17 @@ public class MainFrame
 			@Override
 			public void run()
 			{
+				favouriteCitiesList = new SwingListModelAsList<String>(design.getFavouriteCitiesList());
 				parameterList = new SwingListModelAsList<String>(design.getParameterList());
+				try
+				{
+					favouriteCitiesPersistance.loadFavouriteCities(favouriteCitiesList);
+				}
+				catch (FileNotFoundException ex) { }
+				catch (IOException ex)
+				{
+					ex.printStackTrace();
+				}
 			}
 		});
 		this.usingServer = this.servers[0];
@@ -118,9 +134,8 @@ public class MainFrame
 	
 	public void addFavouriteCityButton_Click(ActionEvent e)
 	{
-		DefaultListModel<String> listModel = (DefaultListModel<String>)design.getFavouriteCitiesList().getModel();
 		JTextField citySearchBox = design.getCitySearchBox();
-		listModel.addElement(citySearchBox.getText());
+		favouriteCitiesList.add(citySearchBox.getText());
 		citySearchBox.setText("");
 	}
 	
@@ -145,11 +160,30 @@ public class MainFrame
 		else
 		{
 			editFavouriteCityBox.setText("");
+			design.getCitySearchBox().setText("");
 		}
 		editFavouriteCityBox.setEnabled(enable);
 		enableColoredButton(design.getEditFavouriteCityButton(), DARK_ORANGE, enable);
 		enableColoredButton(design.getRemoveFavouriteCityButton(), Color.RED, enable);
 		//TODO: Cambiar el servicio y simular click busqueda?
+	}
+	
+	public void editFavouriteCityBox_TextChanged(DocumentEvent e)
+	{
+		boolean enabled = !design.getEditFavouriteCityBox().getText().equals("");
+		design.getEditFavouriteCityButton().setEnabled(enabled);
+	}
+	
+	public void editFavouriteCityButton_Click(ActionEvent e)
+	{
+		String newCity = design.getEditFavouriteCityBox().getText();
+		favouriteCitiesList.set(design.getFavouriteCitiesList().getSelectedIndex(), newCity);
+		design.getCitySearchBox().setText(newCity);
+	}
+	
+	public void removeFavouriteCityButton_Click(ActionEvent e)
+	{
+		favouriteCitiesList.remove(design.getFavouriteCitiesList().getSelectedIndex());
 	}
 	
 	public void show()
@@ -166,19 +200,44 @@ public class MainFrame
 	}
 	
 	public Map<String, String> getCurrentWeather(String city, List<String> params) {
-		if (city == null || params == null) throw new NullPointerException();
+		if (city == null || params == null)
+		{
+			throw new NullPointerException();
+		}
 		Map<String, String> weatherData = usingServer.getCurrentWeather(city);
-		if (weatherData == null) throw new InvalidParameterException();
-		if (params.size() <= 0) return weatherData;
-		Map<String, String> dev = new HashMap<String, String>();
-		for (String param:params) {
-			if (weatherData.containsKey(param)) {
-				dev.put(param, weatherData.get(param));
-			}else {
+		if (weatherData == null)
+		{
+			throw new InvalidParameterException();
+		}
+		if (params.size() <= 0)
+		{
+			return weatherData;
+		}
+		Map<String, String> reducedMap = new HashMap<String, String>();
+		for (String param : params)
+		{
+			if (weatherData.containsKey(param))
+			{
+				reducedMap.put(param, weatherData.get(param));
+			}
+			else
+			{
 				throw new InvalidParameterException();
 			}
 		}
-		return dev;
+		return reducedMap;
+	}
+	
+	public void mainFrame_Closing(WindowEvent e)
+	{
+		try
+		{
+			favouriteCitiesPersistance.saveFavouriteCities(favouriteCitiesList);
+		}
+		catch (IOException ex)
+		{
+			ex.printStackTrace();
+		}
 	}
 	
 }

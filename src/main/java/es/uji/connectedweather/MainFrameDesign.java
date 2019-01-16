@@ -23,6 +23,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
 import java.awt.Font;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 public class MainFrameDesign extends JFrame
 {
 	private static final long serialVersionUID = 2869286737217332104L;
@@ -138,6 +140,12 @@ public class MainFrameDesign extends JFrame
 	 */
 	public MainFrameDesign()
 	{
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				mainFrame.mainFrame_Closing(e);
+			}
+		});
 		this.forecastDataTables = new JTable[5];
 		setResizable(false);
 		setTitle("ConnectedWeather");
@@ -231,12 +239,34 @@ public class MainFrameDesign extends JFrame
 		contentPanel.add(favouriteCitiesList);
 		
 		editFavouriteCityBox = new JTextField();
+		editFavouriteCityBox.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void removeUpdate(DocumentEvent e)
+			{
+				mainFrame.editFavouriteCityBox_TextChanged(e);
+			}
+			@Override
+			public void insertUpdate(DocumentEvent e)
+			{
+				mainFrame.editFavouriteCityBox_TextChanged(e);
+			}
+			@Override
+			public void changedUpdate(DocumentEvent e)
+			{
+				mainFrame.editFavouriteCityBox_TextChanged(e);
+			}
+		});
 		editFavouriteCityBox.setEnabled(false);
 		editFavouriteCityBox.setColumns(10);
 		editFavouriteCityBox.setBounds(10, 175, 115, 20);
 		contentPanel.add(editFavouriteCityBox);
 		
 		editFavouriteCityButton = new JButton("Rename");
+		editFavouriteCityButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e){
+				mainFrame.editFavouriteCityButton_Click(e);
+			}
+		});
 		editFavouriteCityButton.setEnabled(false);
 		editFavouriteCityButton.setFont(new Font("Tahoma", Font.BOLD, 11));
 		editFavouriteCityButton.setBounds(10, 200, 115, 20);
@@ -246,6 +276,11 @@ public class MainFrameDesign extends JFrame
 		DefaultListModel<String> parameterListModel = new DefaultListModel<String>();
 		
 		removeFavouriteCityButton = new JButton("Remove");
+		removeFavouriteCityButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mainFrame.removeFavouriteCityButton_Click(e);
+			}
+		});
 		removeFavouriteCityButton.setEnabled(false);
 		removeFavouriteCityButton.setFont(new Font("Tahoma", Font.BOLD, 11));
 		removeFavouriteCityButton.setBounds(10, 225, 115, 20);

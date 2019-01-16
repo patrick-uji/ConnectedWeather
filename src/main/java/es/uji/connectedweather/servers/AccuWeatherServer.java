@@ -49,9 +49,9 @@ public class AccuWeatherServer implements IWeatherServer
 			map.put("country", cityInfo.country);
 			populateData(map, data);
 		}
-		catch (IOException | ParseException e)
+		catch (IOException | ParseException ex)
 		{
-			e.printStackTrace();
+			ex.printStackTrace();
 			return null;
 		}
 		return map;
@@ -122,9 +122,9 @@ public class AccuWeatherServer implements IWeatherServer
 				maps[currDayIndex] = map;
 			}
 		}
-		catch (IOException | ParseException e)
+		catch (IOException | ParseException ex)
 		{
-			e.printStackTrace();
+			ex.printStackTrace();
 			return null;
 		}
 		return maps;
@@ -146,9 +146,9 @@ public class AccuWeatherServer implements IWeatherServer
 				map.put("date", historicalData.get("LocalObservationDateTime").toString().split("T")[0]);
 				populateData(map, historicalData);
 			}
-			catch (IOException | ParseException e)
+			catch (IOException | ParseException ex)
 			{
-				e.printStackTrace();
+				ex.printStackTrace();
 				return null;
 			}
 			return map;
@@ -172,9 +172,9 @@ public class AccuWeatherServer implements IWeatherServer
 			map.put("category", headlineData.get("Category").toString());
 			map.put("end_date", headlineData.get("EndDate").toString().split("T")[0]);
 		}
-		catch (IOException | ParseException e)
+		catch (IOException | ParseException ex)
 		{
-			e.printStackTrace();
+			ex.printStackTrace();
 			return null;
 		}
 		return map;

@@ -44,9 +44,9 @@ public class ApixuServer implements IWeatherServer
 			map.put("min_temp", "N/A");
 			map.put("max_temp", "N/A");
 		}
-		catch (IOException | ParseException e)
+		catch (IOException | ParseException ex)
 		{
-			e.printStackTrace();
+			ex.printStackTrace();
 			return null;
 		}
 		return map;
@@ -85,9 +85,9 @@ public class ApixuServer implements IWeatherServer
 				maps[currDayIndex] = map;
 			}
 		}
-		catch (IOException | ParseException e)
+		catch (IOException | ParseException ex)
 		{
-			e.printStackTrace();
+			ex.printStackTrace();
 			return null;
 		}
 		return maps;
@@ -141,9 +141,9 @@ public class ApixuServer implements IWeatherServer
 				map.put( "pressure", Float.toString(pressureSum / hoursData.size()) );
 				map.put( "clouds", Float.toString(cloudsSum / (float)hoursData.size()) );
 			}
-			catch (IOException | ParseException e)
+			catch (IOException | ParseException ex)
 			{
-				e.printStackTrace();
+				ex.printStackTrace();
 				return null;
 			}
 			return map;

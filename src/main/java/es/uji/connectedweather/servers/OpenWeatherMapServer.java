@@ -35,9 +35,9 @@ public class OpenWeatherMapServer implements IWeatherServer
 			map.put("city", data.get("name").toString());
 			map.put("precipitation", "N/A");
 		}
-		catch (IOException | ParseException e)
+		catch (IOException | ParseException ex)
 		{
-			e.printStackTrace();
+			ex.printStackTrace();
 			return null;
 		}
 		return map;
@@ -94,9 +94,9 @@ public class OpenWeatherMapServer implements IWeatherServer
 				maps[currDayIndex] = map;
 			}
 		}
-		catch (IOException | ParseException e)
+		catch (IOException | ParseException ex)
 		{
-			e.printStackTrace();
+			ex.printStackTrace();
 			return null;
 		}
 		return maps;
