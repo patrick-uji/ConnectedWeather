@@ -9,20 +9,16 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import es.uji.connectedweather.frames.MainFrame;
-import es.uji.connectedweather.servers.IWeatherServer;
 
-public class MainFrameTest {
+public class MainFrameIntegrationTest {
 	
 	private MainFrame mainFrame;
-	private IWeatherServer mockServer;
 	private String city;
 	private List<String> params;
 	
 	@Before
 	public void setConfiguration() {
-		mockServer = Mockito.mock(IWeatherServer.class);
 		mainFrame = new MainFrame();
 		city = "Madrid";
 		params = new ArrayList<String>();
@@ -62,19 +58,6 @@ public class MainFrameTest {
 	@Test
 	public void getCurrentWeather_emptyParams_returnAll() {
 		assertNotNull(mainFrame.getCurrentWeather(city, params));
-	}
-	
-	//Testing setServer
-	
-	@Test
-	public void setServer_normal_void() {
-		mainFrame.setServer(mockServer);
-	}
-	
-	@Test (expected=InvalidParameterException.class)
-	public void setServer_null_IllegalArgumentException() {
-		mainFrame.setServer(null);
-		fail("Expected InvalidParameterException");
 	}
 
 }

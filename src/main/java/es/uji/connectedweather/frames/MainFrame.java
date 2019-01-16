@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -42,10 +39,79 @@ import es.uji.connectedweather.servers.OpenWeatherMapServer;
 public class MainFrame
 {
 	
+	@SuppressWarnings("unused")
 	private static final int TIMEOUT_SECONDS = 5;
 	private static final Color DARK_GREEN = new Color(0, 192, 0);
 	private static final Color DARK_ORANGE = new Color(255, 160, 0);
 	private IFavouriteCityPersistance favouriteCitiesPersistance;
+	public IFavouriteCityPersistance getFavouriteCitiesPersistance() {
+		return favouriteCitiesPersistance;
+	}
+
+	public void setFavouriteCitiesPersistance(IFavouriteCityPersistance favouriteCitiesPersistance) {
+		this.favouriteCitiesPersistance = favouriteCitiesPersistance;
+	}
+
+	public Map<String, String>[] getLoadedMaps() {
+		return loadedMaps;
+	}
+
+	public void setLoadedMaps(Map<String, String>[] loadedMaps) {
+		this.loadedMaps = loadedMaps;
+	}
+
+	public List<String> getFavouriteCitiesList() {
+		return favouriteCitiesList;
+	}
+
+	public void setFavouriteCitiesList(List<String> favouriteCitiesList) {
+		this.favouriteCitiesList = favouriteCitiesList;
+	}
+
+	public SettingsDialog getSettingsDialog() {
+		return settingsDialog;
+	}
+
+	public void setSettingsDialog(SettingsDialog settingsDialog) {
+		this.settingsDialog = settingsDialog;
+	}
+
+	public IWeatherServer getUsingServer() {
+		return usingServer;
+	}
+
+	public void setUsingServer(IWeatherServer usingServer) {
+		this.usingServer = usingServer;
+	}
+
+	public List<String> getParameterList() {
+		return parameterList;
+	}
+
+	public void setParameterList(List<String> parameterList) {
+		this.parameterList = parameterList;
+	}
+
+	public IWeatherServer[] getServers() {
+		return servers;
+	}
+
+	public void setServers(IWeatherServer[] servers) {
+		this.servers = servers;
+	}
+
+	public int getLastPanelIndex() {
+		return lastPanelIndex;
+	}
+
+	public void setLastPanelIndex(int lastPanelIndex) {
+		this.lastPanelIndex = lastPanelIndex;
+	}
+
+	public void setDesign(MainFrameDesign design) {
+		this.design = design;
+	}
+
 	private Map<String, String>[] loadedMaps; //Using an array to avoid multiple variables for each service
 	private List<String> favouriteCitiesList;
 	private SettingsDialog settingsDialog;
@@ -171,6 +237,7 @@ public class MainFrame
 		design.getSaveWeatherDataButton().setEnabled(enableSaveButton);
 	}
 	
+	@SuppressWarnings("unused")
 	private Map<String, String> executeTaskAndHandleTimeout(Callable<Map<String, String>> task)
 	{
 		/*
@@ -439,6 +506,7 @@ public class MainFrame
 	
 	public void mainFrame_Closing(WindowEvent e)
 	{
+		if (favouriteCitiesList == null) throw new InvalidParameterException();
 		try
 		{
 			favouriteCitiesPersistance.saveFavouriteCities(favouriteCitiesList);
