@@ -81,6 +81,18 @@ public class Utils
 		return (T)currJSONObject.get(keys[lastIndex]);
 	}
 	
+	public static float round(float value, int precision)
+	{
+	    int scale = (int)Math.pow(10, precision);
+	    return Math.round(value * scale) / (float)scale;
+	}
+	
+	public static double round(double value, int precision)
+	{
+	    int scale = (int)Math.pow(10, precision);
+	    return Math.round(value * scale) / (double)scale;
+	}
+	
 	public static <T> T timeoutTask(Callable<T> callable, int timeout, TimeUnit timeUnit, Consumer<Future<T>> callback) throws TimeoutException, InterruptedException, ExecutionException
 	{
 		ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -141,6 +153,16 @@ public class Utils
 		    	runnable.run(); 
 	    	}
 		}
+	}
+	
+	public static double celsiusToFahrenheit(double celsius)
+	{
+		return (celsius * 9.0 / 5.0) + 32;
+	}
+	
+	public static double fahrenheitToCelsius(double fahrenheit)
+	{
+		return (fahrenheit - 32) * 5.0 / 9.0;
 	}
 	
 }

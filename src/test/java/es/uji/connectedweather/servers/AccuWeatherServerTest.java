@@ -33,15 +33,13 @@ public class AccuWeatherServerTest
 	@Test
 	public void getCurrentWeather_invalidCity_null()
 	{
-		city = "asdgdssdf";
-		assertNull(server.getCurrentWeather(city));
+		assertNull(server.getCurrentWeather("asdgdssdf"));
 	}
 	
 	@Test(expected = NullPointerException.class)
 	public void getCurrentWeather_nullCity_nullPointerException()
 	{
-		city = null;
-		server.getCurrentWeather(city);
+		server.getCurrentWeather(null);
 		fail("Expected NullPointerException");
 	}
 	
@@ -123,4 +121,5 @@ public class AccuWeatherServerTest
 		server.getAlerts(null);
 		fail("Expected NullPointerException");
 	}
+	
 }

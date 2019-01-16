@@ -57,7 +57,7 @@ public class ApixuServerTest
 	}
 	
 	@Test(expected = NullPointerException.class)
-	public void getWeatherForecast_nullCity_nullPoidaysToSubtractnterException()
+	public void getWeatherForecast_nullCity_nullPointerException()
 	{
 		server.getWeatherForecast(null);
 		fail("Expected NullPointerException");

@@ -1,6 +1,8 @@
 package es.uji.connectedweather.adapters;
+
 import java.util.Enumeration;
 import java.util.ListIterator;
+
 public class EnumerationAsListIterator<T> implements ListIterator<T>
 {
 	

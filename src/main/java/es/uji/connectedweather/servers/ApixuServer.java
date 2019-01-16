@@ -8,6 +8,7 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import es.uji.connectedweather.TemperatureUnit;
 import es.uji.connectedweather.Utils;
 
 public class ApixuServer implements IWeatherServer
@@ -18,6 +19,19 @@ public class ApixuServer implements IWeatherServer
 	private static final String HISTORICAL_URL = BASE_URL + "history.json?key=" + API_KEY;
 	private static final String CURRENT_WEATHER_URL = BASE_URL + "current.json?key=" + API_KEY;
 	private static final String FORECAST_URL = BASE_URL + "forecast.json?days=5&key=" + API_KEY;
+	
+	private TemperatureUnit units;
+	
+	public ApixuServer()
+	{
+		this.units = TemperatureUnit.CELSIUS;
+	}
+	
+	@Override
+	public void setTemperatureUnits(TemperatureUnit units)
+	{
+		this.units = units;
+	}
 	
 	@Override
 	public Map<String, String> getCurrentWeather(String city)
@@ -33,7 +47,7 @@ public class ApixuServer implements IWeatherServer
 			map.put("date", LocalDate.now().toString());
 			map.put("city", locationData.get("name").toString());
 			map.put("country", locationData.get("country").toString());
-			map.put("temperature", weatherData.get("temp_c").toString());
+			map.put("temperature", getTemperatureString(weatherData, "temp_c"));
 			map.put("condition", Utils.readJSONObject(weatherData, "condition", "text"));
 			map.put("wind", weatherData.get("wind_kph").toString());
 			map.put("wind_degree", weatherData.get("wind_degree").toString());
@@ -51,6 +65,16 @@ public class ApixuServer implements IWeatherServer
 			return null;
 		}
 		return map;
+	}
+	
+	private String getTemperatureString(JSONObject weatherData, String key)
+	{
+		double temperature = (double)weatherData.get(key);
+		if (units == TemperatureUnit.FAHRENHEIT)
+		{
+			temperature = Utils.celsiusToFahrenheit(temperature);
+		}
+		return Double.toString(Utils.round(temperature, 1));
 	}
 	
 	@Override
@@ -96,13 +120,13 @@ public class ApixuServer implements IWeatherServer
 	
 	private void populateWeatherData(Map<String, String> map, JSONObject weatherData)
 	{
-		map.put("temperature", weatherData.get("avgtemp_c").toString());
+		map.put("temperature", getTemperatureString(weatherData, "avgtemp_c"));
 		map.put("condition", Utils.readJSONObject(weatherData, "condition", "text"));
 		map.put("precipitation", weatherData.get("totalprecip_mm").toString());
 		map.put("humidity", weatherData.get("avghumidity").toString());
 		map.put("visibility", weatherData.get("avgvis_km").toString());
-		map.put("min_temp", weatherData.get("mintemp_c").toString());
-		map.put("max_temp", weatherData.get("maxtemp_c").toString());
+		map.put("min_temp", getTemperatureString(weatherData, "mintemp_c"));
+		map.put("max_temp", getTemperatureString(weatherData, "maxtemp_c"));
 	}
 
 	@Override
@@ -114,10 +138,10 @@ public class ApixuServer implements IWeatherServer
 			HashMap<String, String> map = new HashMap<String, String>();
 			try
 			{
-				float windSum = 0;
+				double windSum = 0;
 				int cloudsSum = 0;
 				JSONObject hourData;
-				float pressureSum = 0;
+				double pressureSum = 0;
 				int windDegreeSum = 0;
 				String response = Utils.makeGETRequest( new URL(HISTORICAL_URL + "&q=" + city + "&dt=" + date.toString()) );
 				JSONObject data = Utils.parseJSON(response);
@@ -135,12 +159,11 @@ public class ApixuServer implements IWeatherServer
 					windDegreeSum += (long)hourData.get("wind_degree");
 					pressureSum += (double)hourData.get("pressure_mb");
 					cloudsSum += (long)hourData.get("cloud");
-					
 				}
-				map.put( "wind", Float.toString(windSum / hoursData.size()) );
-				map.put( "wind_degree", Float.toString(windDegreeSum / (float)hoursData.size()) );
-				map.put( "pressure", Float.toString(pressureSum / hoursData.size()) );
-				map.put( "clouds", Float.toString(cloudsSum / (float)hoursData.size()) );
+				map.put( "wind", Double.toString(Utils.round(windSum / hoursData.size(), 1)) );
+				map.put( "wind_degree", Float.toString(Utils.round(windDegreeSum / (float)hoursData.size(), 1)) );
+				map.put( "pressure", Double.toString(Utils.round(pressureSum / hoursData.size(), 1)) );
+				map.put( "clouds", Float.toString(Utils.round(cloudsSum / (float)hoursData.size(), 1)) );
 			}
 			catch (IOException | ParseException ex)
 			{

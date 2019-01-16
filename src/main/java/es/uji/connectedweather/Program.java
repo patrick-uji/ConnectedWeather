@@ -1,8 +1,10 @@
 package es.uji.connectedweather;
+
 import java.awt.EventQueue;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import es.uji.connectedweather.frames.MainFrame;
+
 public class Program
 {
 	

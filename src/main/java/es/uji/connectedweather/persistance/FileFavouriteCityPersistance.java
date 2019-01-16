@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Scanner;
 public class FileFavouriteCityPersistance implements IFavouriteCityPersistance
 {
+	
 	private String file = "favourites.txt";
 	
 	public void setFile(String file) 
@@ -29,6 +30,7 @@ public class FileFavouriteCityPersistance implements IFavouriteCityPersistance
 			}
 		}
 	}
+	
 	public void saveFavouriteCities(List<String> cities) throws IOException
 	{
 		try ( FileWriter favouriteCityWriter = new FileWriter(new File(file)) )
@@ -39,4 +41,5 @@ public class FileFavouriteCityPersistance implements IFavouriteCityPersistance
 			}
 		}
 	}
+	
 }

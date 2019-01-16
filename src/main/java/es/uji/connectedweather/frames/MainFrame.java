@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -27,6 +29,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.DefaultTableModel;
+import es.uji.connectedweather.TemperatureUnit;
 import es.uji.connectedweather.Utils;
 import es.uji.connectedweather.adapters.SwingListModelAsList;
 import es.uji.connectedweather.persistance.FileFavouriteCityPersistance;
@@ -45,6 +48,7 @@ public class MainFrame
 	private IFavouriteCityPersistance favouriteCitiesPersistance;
 	private Map<String, String>[] loadedMaps; //Using an array to avoid multiple variables for each service
 	private List<String> favouriteCitiesList;
+	private SettingsDialog settingsDialog;
 	private IWeatherServer usingServer;
 	private List<String> parameterList;
 	private IWeatherServer[] servers;
@@ -57,6 +61,8 @@ public class MainFrame
 		JComboBox<String> serversComboBox;
 		this.design = new MainFrameDesign(this);
 		this.loadedMaps = new Map[1 + 5 + 1 + 1];
+		this.parameterList = new ArrayList<String>();
+		this.settingsDialog = new SettingsDialog(this);
 		this.favouriteCitiesPersistance = new FileFavouriteCityPersistance();
 		this.servers = new IWeatherServer[] {
 			new OpenWeatherMapServer(),
@@ -74,7 +80,6 @@ public class MainFrame
 			public void run()
 			{
 				favouriteCitiesList = new SwingListModelAsList<String>(design.getFavouriteCitiesList());
-				parameterList = new SwingListModelAsList<String>(design.getParameterList());
 				try
 				{
 					favouriteCitiesPersistance.loadFavouriteCities(favouriteCitiesList);
@@ -87,6 +92,11 @@ public class MainFrame
 			}
 		});
 		this.usingServer = this.servers[0];
+	}
+	
+	public MainFrameDesign getDesign()
+	{
+		return design;
 	}
 	
 	public void serversComboBox_SelectionChanged(ActionEvent e)
@@ -293,7 +303,62 @@ public class MainFrame
 	
 	public void openSettingsButton_Click(ActionEvent e)
 	{
-		
+		settingsDialog.show();
+	}
+	
+	public void settingsDialog_OK()
+	{
+		SettingsDialogDesign settingsDialogDesign = settingsDialog.getDesign();
+		Map<String, String> loadedMap = getServiceLoadedMap();
+		updateParameterList(settingsDialogDesign);
+		setNewUnits(settingsDialogDesign);
+		if (loadedMap != null)
+		{
+			refreshServiceTable(loadedMap);
+		}
+	}
+	
+	private void updateParameterList(SettingsDialogDesign settingsDialogDesign)
+	{
+		parameterList.clear();
+		for (JCheckBox currParamBox : settingsDialogDesign.getParamCheckBoxes())
+		{
+			if (currParamBox.isSelected())
+			{
+				parameterList.add(currParamBox.getText());
+			}
+		}
+	}
+	
+	private void setNewUnits(SettingsDialogDesign settingsDialogDesign)
+	{
+		int selectedUnitIndex = settingsDialogDesign.getTemperatureUnitsBox().getSelectedIndex();
+		TemperatureUnit newUnits = selectedUnitIndex == 0 ? TemperatureUnit.CELSIUS : TemperatureUnit.FAHRENHEIT;
+		for (IWeatherServer currServer : servers)
+		{
+			currServer.setTemperatureUnits(newUnits);
+		}
+	}
+	
+	private void refreshServiceTable(Map<String, String> loadedMap)
+	{
+		JTable refresingTable;
+		if (lastPanelIndex != 3)
+		{
+			switch (lastPanelIndex)
+			{
+				case 0:
+					refresingTable = design.getCurrentWeatherDataTable();
+					break;
+				case 1:
+					refresingTable = design.getForecastDataTable(design.getForecastDayTabs().getSelectedIndex());
+					break;
+				default: //case 2
+					refresingTable = design.getHistoricalDataTable();
+					break;
+			}
+			refreshTable(refresingTable, filterMap(loadedMap, parameterList));
+		}
 	}
 	
 	public void saveWeatherDataButton_Click(ActionEvent e)
@@ -340,23 +405,36 @@ public class MainFrame
 		{
 			throw new InvalidParameterException();
 		}
+		return filterMap(weatherData, params);
+	}
+	
+	private Map<String, String> filterMap(Map<String, String> map, List<String> params)
+	{
 		if (params.size() <= 0)
 		{
-			return weatherData;
+			return map;
 		}
-		Map<String, String> reducedMap = new HashMap<String, String>();
+		Map<String, String> filteredMap = new HashMap<String, String>();
 		for (String param : params)
 		{
-			if (weatherData.containsKey(param))
+			if (map.containsKey(param))
 			{
-				reducedMap.put(param, weatherData.get(param));
+				filteredMap.put(param, map.get(param));
 			}
 			else
 			{
 				throw new InvalidParameterException();
 			}
 		}
-		return reducedMap;
+		return filteredMap;
+	}
+	
+	public void mainFrame_GainedFocus(WindowEvent e)
+	{
+		if (!design.isEnabled())
+		{
+			settingsDialog.getDesign().requestFocus();
+		}
 	}
 	
 	public void mainFrame_Closing(WindowEvent e)
