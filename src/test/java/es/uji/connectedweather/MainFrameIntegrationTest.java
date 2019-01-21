@@ -11,29 +11,33 @@ import org.junit.Before;
 import org.junit.Test;
 import es.uji.connectedweather.frames.MainFrame;
 
-public class MainFrameIntegrationTest {
+public class MainFrameIntegrationTest
+{
 	
-	private MainFrame mainFrame;
 	private String city;
+	private MainFrame mainFrame;
 	private List<String> params;
 	
 	@Before
-	public void setConfiguration() {
-		mainFrame = new MainFrame();
+	public void setConfiguration()
+	{
 		city = "Madrid";
+		mainFrame = new MainFrame();
 		params = new ArrayList<String>();
 	}
 	
 	//Testing getCurrentWeather
 	
 	@Test
-	public void getCurrentWeather_normal_weatherData() {
+	public void getCurrentWeather_normal_weatherData()
+	{
 		params.add("temperature");
 		mainFrame.getCurrentWeather(city, params);
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void getCurrentWeather_nullCity_nullPointerException() {
+	public void getCurrentWeather_nullCity_nullPointerException()
+	{
 		city = null;
 		params.add("temperature");
 		mainFrame.getCurrentWeather(city, params);
@@ -41,7 +45,8 @@ public class MainFrameIntegrationTest {
 	}
 	
 	@Test(expected=InvalidParameterException.class)
-	public void getCurrentWeather_invalidCity_invalidParameterException() {
+	public void getCurrentWeather_invalidCity_invalidParameterException()
+	{
 		String city = "kjhdfjkd";
 		params.add("temperature");
 		mainFrame.getCurrentWeather(city, params);
@@ -49,14 +54,16 @@ public class MainFrameIntegrationTest {
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void getCurrentWeather_nullParameters_nullPointerException(){
+	public void getCurrentWeather_nullParameters_nullPointerException()
+	{
 		params = null;
 		mainFrame.getCurrentWeather(city, params);
 		fail("Expected NullPointerException");
 	}
 	
 	@Test
-	public void getCurrentWeather_emptyParams_returnAll() {
+	public void getCurrentWeather_emptyParams_returnAll()
+	{
 		assertNotNull(mainFrame.getCurrentWeather(city, params));
 	}
 

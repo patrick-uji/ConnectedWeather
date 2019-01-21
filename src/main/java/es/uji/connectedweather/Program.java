@@ -2,11 +2,12 @@ package es.uji.connectedweather;
 
 import java.awt.EventQueue;
 import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import es.uji.connectedweather.frames.MainFrame;
 
 public class Program
 {
+	
+	public static final boolean DEBUG = true;
 	
 	public static void main(String[] args)
 	{
@@ -14,18 +15,14 @@ public class Program
 		{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch (UnsupportedLookAndFeelException ex) { }
-		catch (ClassNotFoundException ex) { }
-		catch (InstantiationException ex) { }
-		catch (IllegalAccessException ex) { }
-		EventQueue.invokeLater(new Runnable()
-		{
-			public void run()
-			{
-				MainFrame mainFrame = new MainFrame();
-				mainFrame.show();
-			}
-		});
+		catch (Exception ex) { }
+		EventQueue.invokeLater(Program::run);
+	}
+	
+	private static void run()
+	{
+		MainFrame mainFrame = new MainFrame();
+		mainFrame.show();
 	}
 	
 }

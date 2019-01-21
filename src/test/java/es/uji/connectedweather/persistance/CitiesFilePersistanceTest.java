@@ -13,98 +13,126 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class FileFavouriteCityPersistanceTest {
+public class CitiesFilePersistanceTest
+{
 	
 	private static final String TEST_DIRECTORY = "dirToRunTesting";
 	private static final String TEST_FILE = "fileUnderTesting.txt";
-	
-	private FileFavouriteCityPersistance persistance;
-	private List<String> favoritesCities;
+
 	private static File directory;
 	
+	private CitiesFilePersistance persistance;
+	private List<String> favoritesCities;
+	
 	@BeforeClass
-	public static void createDir() {
+	public static void createDir()
+	{
 		directory = new File(TEST_DIRECTORY);
 		directory.mkdirs();
 	}
 	
 	@Before
-	public void setConfiguration() {
+	public void setConfiguration()
+	{
 		String path = TEST_DIRECTORY + File.separator + TEST_FILE;
-		persistance = new FileFavouriteCityPersistance();
-		persistance.setFile(path);
+		persistance = new CitiesFilePersistance(path);
 		favoritesCities = new ArrayList<String>();
 	}
 	
 	@AfterClass
-	public static void removeConfiguration() {
+	public static void removeConfiguration()
+	{
 		directory.delete();
 	}
 	
 	//Testing loadFavouriteCities
 	
 	@Test
-	public void loadFavouriteCities_notExistingFile_AllSafe() {
-		try {
-			persistance.loadFavouriteCities(favoritesCities);
+	public void loadFavouriteCities_notExistingFile_AllSafe()
+	{
+		try
+		{
+			persistance.load(favoritesCities);
 			fail("Expected FileNotFoundException");
-		} catch (FileNotFoundException e) {
+		}
+		catch (FileNotFoundException ex)
+		{
 			//ok
-		} catch (Exception e) {
+		}
+		catch (Exception ex)
+		{
 			fail("Expected FileNotFoundException");
 		}
 	}
 	
 	@Test
-	public void loadFavouriteCities_emptyFile_emptyList() {
-		File file = new File(persistance.getFile());
-		try {
+	public void loadFavouriteCities_emptyFile_emptyList()
+	{
+		File file = new File(persistance.getFilePath());
+		try
+		{
 			file.createNewFile();
-			persistance.loadFavouriteCities(favoritesCities);
+			persistance.load(favoritesCities);
 			assertEquals(favoritesCities.size(), 0);
-		}catch(Exception e) {
-			e.printStackTrace();
-			fail("Exception throwed");
-		}finally {
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+			fail("Exception thrown");
+		}
+		finally
+		{
 			file.delete();
 		}
 	}
 	
 	@Test
-	public void loadFavouriteCities_notEmptyFavoriteList_emptyList() {
-		File file = new File(persistance.getFile());
-		try {
+	public void loadFavouriteCities_notEmptyFavoriteList_emptyList()
+	{
+		File file = new File(persistance.getFilePath());
+		try
+		{
 			file.createNewFile();
 			favoritesCities.add("a");
-			persistance.loadFavouriteCities(favoritesCities);
+			persistance.load(favoritesCities);
 			assertEquals(favoritesCities.size(), 0);
-		}catch(Exception e) {
-			e.printStackTrace();
-			fail("Exception throwed");
-		}finally {
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+			fail("Exception thrown");
+		}
+		finally
+		{
 			file.delete();
 		}
 	}
 	
 	@Test
-	public void loadFavouriteCities_nullList_NullPointerException() {
-		File file = new File(persistance.getFile());
-		try {
+	public void loadFavouriteCities_nullList_NullPointerException()
+	{
+		File file = new File(persistance.getFilePath());
+		try
+		{
 			file.createNewFile();
-			persistance.loadFavouriteCities(null);
+			persistance.load(null);
 			fail("Expected NullPointerException");
-		}catch(NullPointerException e) {
+		}
+		catch (NullPointerException ex)
+		{
 			//ok
-		}catch(Exception e) {
-			e.printStackTrace();
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
 			fail("Exception not expected throwed");
-		}finally {
+		}
+		finally
+		{
 			file.delete();
 		}
 	}
 	
 	//Testing saveFavouriteCities
-
 	
-
 }

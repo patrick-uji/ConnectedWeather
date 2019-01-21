@@ -1,6 +1,7 @@
 package es.uji.connectedweather.servers;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -36,7 +37,10 @@ public class ApixuServer implements IWeatherServer
 	@Override
 	public Map<String, String> getCurrentWeather(String city)
 	{
-		if (city == null) throw new NullPointerException();
+		if (city == null)
+		{
+			throw new NullPointerException();
+		}
 		HashMap<String, String> map = new HashMap<String, String>();
 		try
 		{
@@ -49,15 +53,19 @@ public class ApixuServer implements IWeatherServer
 			map.put("country", locationData.get("country").toString());
 			map.put("temperature", getTemperatureString(weatherData, "temp_c"));
 			map.put("condition", Utils.readJSONObject(weatherData, "condition", "text"));
-			map.put("wind", weatherData.get("wind_kph").toString());
+			map.put("wind", weatherData.get("wind_kph") + " km/h");
 			map.put("wind_degree", weatherData.get("wind_degree").toString());
-			map.put("pressure", weatherData.get("pressure_mb").toString());
-			map.put("precipitation", weatherData.get("precip_mm").toString());
+			map.put("pressure", weatherData.get("pressure_mb") + " mb");
+			map.put("precipitation", weatherData.get("precip_mm") + " mm");
 			map.put("humidity", weatherData.get("humidity").toString());
 			map.put("clouds", weatherData.get("cloud").toString());
-			map.put("visibility", weatherData.get("vis_km").toString());
+			map.put("visibility", weatherData.get("vis_km") + " km");
 			map.put("min_temp", "N/A");
 			map.put("max_temp", "N/A");
+		}
+		catch (ConnectException ex) //Connection timeout
+		{
+			return null;
 		}
 		catch (IOException | ParseException ex)
 		{
@@ -74,14 +82,17 @@ public class ApixuServer implements IWeatherServer
 		{
 			temperature = Utils.celsiusToFahrenheit(temperature);
 		}
-		return Double.toString(Utils.round(temperature, 1));
+		return Utils.round(temperature, 1) + units.getSymbol();
 	}
 	
 	@Override
 	@SuppressWarnings("unchecked")
 	public Map<String, String>[] getWeatherForecast(String city)
 	{
-		if (city == null) throw new NullPointerException();
+		if (city == null)
+		{
+			throw new NullPointerException();
+		}
 		HashMap<String, String>[] maps = new HashMap[5];
 		try
 		{
@@ -103,12 +114,16 @@ public class ApixuServer implements IWeatherServer
 				map.put("city", cityName);
 				map.put("country", country);
 				populateWeatherData(map, weatherData);
-				map.put("wind", weatherData.get("maxwind_kph").toString());
+				map.put("wind", weatherData.get("maxwind_kph") + " km/h");
 				map.put("wind_degree", "N/A");
 				map.put("pressure", "N/A");
 				map.put("clouds", "N/A");
 				maps[currDayIndex] = map;
 			}
+		}
+		catch (ConnectException ex) //Connection timeout
+		{
+			return null;
 		}
 		catch (IOException | ParseException ex)
 		{
@@ -122,9 +137,9 @@ public class ApixuServer implements IWeatherServer
 	{
 		map.put("temperature", getTemperatureString(weatherData, "avgtemp_c"));
 		map.put("condition", Utils.readJSONObject(weatherData, "condition", "text"));
-		map.put("precipitation", weatherData.get("totalprecip_mm").toString());
+		map.put("precipitation", weatherData.get("totalprecip_mm") + " mm");
 		map.put("humidity", weatherData.get("avghumidity").toString());
-		map.put("visibility", weatherData.get("avgvis_km").toString());
+		map.put("visibility", weatherData.get("avgvis_km") + " km");
 		map.put("min_temp", getTemperatureString(weatherData, "mintemp_c"));
 		map.put("max_temp", getTemperatureString(weatherData, "maxtemp_c"));
 	}
@@ -132,17 +147,20 @@ public class ApixuServer implements IWeatherServer
 	@Override
 	public Map<String, String> getHistoricalData(String city, LocalDate date)
 	{
-		if (city == null) throw new NullPointerException();
+		if (city == null)
+		{
+			throw new NullPointerException();
+		}
 		if (date.getYear() >= 2015 && date.compareTo(LocalDate.now()) < 0)
 		{
 			HashMap<String, String> map = new HashMap<String, String>();
 			try
 			{
-				double windSum = 0;
 				int cloudsSum = 0;
+				double windSum = 0;
 				JSONObject hourData;
-				double pressureSum = 0;
 				int windDegreeSum = 0;
+				double pressureSum = 0;
 				String response = Utils.makeGETRequest( new URL(HISTORICAL_URL + "&q=" + city + "&dt=" + date.toString()) );
 				JSONObject data = Utils.parseJSON(response);
 				JSONObject locationData = (JSONObject)data.get("location");
@@ -160,10 +178,14 @@ public class ApixuServer implements IWeatherServer
 					pressureSum += (double)hourData.get("pressure_mb");
 					cloudsSum += (long)hourData.get("cloud");
 				}
-				map.put( "wind", Double.toString(Utils.round(windSum / hoursData.size(), 1)) );
-				map.put( "wind_degree", Float.toString(Utils.round(windDegreeSum / (float)hoursData.size(), 1)) );
-				map.put( "pressure", Double.toString(Utils.round(pressureSum / hoursData.size(), 1)) );
-				map.put( "clouds", Float.toString(Utils.round(cloudsSum / (float)hoursData.size(), 1)) );
+				map.put("wind", Utils.round(windSum / hoursData.size(), 1) + " km/h");
+				map.put("wind_degree", Integer.toString( Math.round(windDegreeSum / (float)hoursData.size()) ));
+				map.put("pressure", Utils.round(pressureSum / hoursData.size(), 1) + " mb");
+				map.put("clouds", Integer.toString( Math.round(cloudsSum / (float)hoursData.size()) ));
+			}
+			catch (ConnectException ex) //Connection timeout
+			{
+				return null;
 			}
 			catch (IOException | ParseException ex)
 			{

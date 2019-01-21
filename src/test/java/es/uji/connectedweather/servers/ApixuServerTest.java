@@ -10,12 +10,13 @@ import java.time.LocalDate;
 public class ApixuServerTest
 {
 	
-	private IWeatherServer server;
-	private LocalDate date;
 	private String city;
+	private LocalDate date;
+	private IWeatherServer server;
 	
 	@Before
-	public void setConfiguration() {
+	public void setConfiguration()
+	{
 		server = new ApixuServer();
 		date = LocalDate.now().minusDays(1);
 		city = "Madrid";
@@ -66,36 +67,39 @@ public class ApixuServerTest
 	//Testing getHistoricalData
 	
 	@Test
-	public void getHistoricalData_normal_ok() {
+	public void getHistoricalData_normal_ok()
+	{
 		assertNotNull(server.getHistoricalData(city, date));
 	}
 	
 	@Test
-	public void getHistoricalData_invalidCity_null() {
+	public void getHistoricalData_invalidCity_null()
+	{
 		assertNull(server.getHistoricalData("uhbhdjf", date));
-		
 	}
 	
 	@Test(expected = NullPointerException.class)
-	public void getHistoricalData_nullCity_nullPointerException() {
+	public void getHistoricalData_nullCity_nullPointerException()
+	{
 		server.getHistoricalData(null, date);
 		fail("Expected NullPointerException");
 	}
 	
 	@Test
-	public void getHistoricalData_todayData_null() {
-		LocalDate date = LocalDate.now();
-		assertNull(server.getHistoricalData(city, date));
+	public void getHistoricalData_todayData_null()
+	{
+		assertNull( server.getHistoricalData(city, LocalDate.now()) );
 	}
 	
 	@Test
-	public void getHistoricalData_futureData_null() {
-		LocalDate date = LocalDate.now().plusDays(2);
-		assertNull(server.getHistoricalData(city, date));
+	public void getHistoricalData_futureData_null()
+	{
+		assertNull( server.getHistoricalData(city, LocalDate.now().plusDays(2)) );
 	}
 	
 	@Test(expected = NullPointerException.class)
-	public void getHistoricalData_nullData_nullPointerException() {
+	public void getHistoricalData_nullData_nullPointerException()
+	{
 		server.getHistoricalData(city, null);
 		fail("Expected NullPointerException");
 	}

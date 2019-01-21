@@ -7,13 +7,15 @@ import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 
-public class OpenWeatherMapServerTest {
+public class OpenWeatherMapServerTest
+{
 
-	private IWeatherServer server;
 	private String city;
+	private IWeatherServer server;
 	
 	@Before
-	public void setConfiguration() {
+	public void setConfiguration()
+	{
 		server = new OpenWeatherMapServer();
 		city = "Madrid";
 	}

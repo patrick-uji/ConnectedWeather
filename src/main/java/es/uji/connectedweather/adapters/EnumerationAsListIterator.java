@@ -63,4 +63,5 @@ public class EnumerationAsListIterator<T> implements ListIterator<T>
 	{
         throw new UnsupportedOperationException();
 	}
+	
 }

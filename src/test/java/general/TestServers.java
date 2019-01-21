@@ -15,4 +15,4 @@ import es.uji.connectedweather.servers.OpenWeatherMapServerTest;
 	OpenWeatherMapServerTest.class
 })
 
-public class TestServers {}
+public class TestServers { }

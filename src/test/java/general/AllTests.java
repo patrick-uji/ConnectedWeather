@@ -5,8 +5,8 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import es.uji.connectedweather.MainFrameIntegrationTest;
-import es.uji.connectedweather.MainFrameUnityTest;
-import es.uji.connectedweather.persistance.FileFavouriteCityPersistanceTest;
+import es.uji.connectedweather.MainFrameUnitTest;
+import es.uji.connectedweather.persistance.CitiesFilePersistanceTest;
 import es.uji.connectedweather.servers.AccuWeatherServerTest;
 import es.uji.connectedweather.servers.ApixuServerTest;
 import es.uji.connectedweather.servers.OpenWeatherMapServerTest;
@@ -17,8 +17,8 @@ import es.uji.connectedweather.servers.OpenWeatherMapServerTest;
 	ApixuServerTest.class,
 	OpenWeatherMapServerTest.class,
 	MainFrameIntegrationTest.class,
-	MainFrameUnityTest.class,
-	FileFavouriteCityPersistanceTest.class
+	MainFrameUnitTest.class,
+	CitiesFilePersistanceTest.class
 })
 
-public class AllTests{}
+public class AllTests { }

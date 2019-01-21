@@ -31,13 +31,33 @@ import java.awt.event.WindowFocusListener;
 public class MainFrameDesign extends JFrame
 {
 	
+	private static final String[] COLUMN_NAMES = new String[] { "Data", "Value" };
+	
+	private class WeatherTableModel extends DefaultTableModel
+	{
+		
+		private static final long serialVersionUID = 7632128755110024218L;
+		
+		private WeatherTableModel()
+		{
+			super(COLUMN_NAMES, 0);
+		}
+		
+		@Override
+		public boolean isCellEditable(int row, int column)
+		{
+			return false;
+		}
+		
+	}
+	
 	private static final long serialVersionUID = 2869286737217332104L;
 	private JPanel contentPanel;
 	private MainFrame mainFrame;
 	private DatePicker datePicker;
 	private JTable alertDataTable;
 	private JPanel[] servicePanels;
-	private JButton searchCityButton;
+	private JButton queryCityButton;
 	private JTextField citySearchBox;
 	private JTable historicalDataTable;
 	private JButton openSettingsButton;
@@ -69,9 +89,9 @@ public class MainFrameDesign extends JFrame
 		return citySearchBox;
 	}
 	
-	public JButton getSearchCityButton()
+	public JButton getQueryCityButton()
 	{
-		return searchCityButton;
+		return queryCityButton;
 	}
 	
 	public JButton getAddFavouriteCityButton()
@@ -162,7 +182,7 @@ public class MainFrameDesign extends JFrame
 				mainFrame.mainFrame_Closing(e);
 			}
 		});
-		this.forecastDataTables = new JTable[5];
+		this.forecastDataTables = new JTable[MainFrame.FORECAST_DAYS];
 		setResizable(false);
 		setTitle("EI1048 - ConnectedWeather");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -202,22 +222,22 @@ public class MainFrameDesign extends JFrame
 		});
 		citySearchBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				searchCityButton.doClick();
+				queryCityButton.doClick();
 			}
 		});
 		citySearchBox.setBounds(135, 11, 164, 20);
 		contentPanel.add(citySearchBox);
 		citySearchBox.setColumns(10);
 		
-		searchCityButton = new JButton("Search");
-		searchCityButton.setEnabled(false);
-		searchCityButton.addActionListener(new ActionListener() {
+		queryCityButton = new JButton("Query");
+		queryCityButton.setEnabled(false);
+		queryCityButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				mainFrame.searchCityButton_Click(e);
+				mainFrame.queryCityButton_Click(e);
 			}
 		});
-		searchCityButton.setBounds(309, 10, 65, 23);
-		contentPanel.add(searchCityButton);
+		queryCityButton.setBounds(309, 10, 65, 23);
+		contentPanel.add(queryCityButton);
 		
 		favouriteCitiesList = new JList<String>();
 		favouriteCitiesList.setBackground(new Color(230, 230, 250));
@@ -241,7 +261,7 @@ public class MainFrameDesign extends JFrame
 		contentPanel.add(addFavouriteCityButton);
 		
 		JLabel serviceLabel = new JLabel("Service:");
-		serviceLabel.setBounds(279, 42, 46, 14);
+		serviceLabel.setBounds(280, 45, 46, 14);
 		contentPanel.add(serviceLabel);
 		
 		serviceComboBox = new JComboBox<String>();
@@ -251,7 +271,7 @@ public class MainFrameDesign extends JFrame
 			}
 		});
 		serviceComboBox.setModel(new DefaultComboBoxModel<String>(new String[] {"Current Weather", "Weather Forecast", "Historical Data", "Weather Alarms"}));
-		serviceComboBox.setBounds(324, 39, 120, 20);
+		serviceComboBox.setBounds(324, 42, 120, 20);
 		contentPanel.add(serviceComboBox);
 		favouriteCitiesList.setBounds(10, 40, 115, 240);
 		contentPanel.add(favouriteCitiesList);
@@ -309,7 +329,7 @@ public class MainFrameDesign extends JFrame
 		currentWeatherPanel.setLayout(new BorderLayout(0, 0));
 		
 		currentWeatherDataTable = new JTable();
-		currentWeatherDataTable.setModel(createMapTableModel());
+		currentWeatherDataTable.setModel(new WeatherTableModel());
 		currentWeatherPanel.add(currentWeatherDataTable);
 		
 		JPanel weatherForecastPanel = new JPanel();
@@ -330,7 +350,7 @@ public class MainFrameDesign extends JFrame
 			newTable = new JTable();
 			forecastDayTabs.add("Day " + nextForecastIndex, newTable);
 			forecastDataTables[currForecastIndex] = newTable;
-			newTable.setModel(createMapTableModel());
+			newTable.setModel(new WeatherTableModel());
 			currForecastIndex = nextForecastIndex;
 			nextForecastIndex++;
 		}
@@ -348,7 +368,7 @@ public class MainFrameDesign extends JFrame
 		historicalDataPanel.add(datePicker, BorderLayout.NORTH);
 		
 		historicalDataTable = new JTable();
-		historicalDataTable.setModel(createMapTableModel());	
+		historicalDataTable.setModel(new WeatherTableModel());	
 		historicalDataPanel.add(historicalDataTable, BorderLayout.CENTER);
 		
 		JPanel weatherAlertsPanel = new JPanel();
@@ -360,7 +380,7 @@ public class MainFrameDesign extends JFrame
 		weatherAlertsPanel.setLayout(new BorderLayout(0, 0));
 		
 		alertDataTable = new JTable();
-		alertDataTable.setModel(createMapTableModel());
+		alertDataTable.setModel(new WeatherTableModel());
 		weatherAlertsPanel.add(alertDataTable, BorderLayout.CENTER);
 		
 		openSettingsButton = new JButton("Open Settings...");
@@ -385,14 +405,6 @@ public class MainFrameDesign extends JFrame
 		this.servicePanels = new JPanel[] {
 				currentWeatherPanel, weatherForecastPanel, historicalDataPanel, weatherAlertsPanel
 		};
-	}
-	
-	private DefaultTableModel createMapTableModel()
-	{
-		return new DefaultTableModel(
-				new Object[][] { },
-				new String[] {"Data", "Value"}
-		);
 	}
 	
 }

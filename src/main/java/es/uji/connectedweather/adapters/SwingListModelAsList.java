@@ -1,5 +1,6 @@
 package es.uji.connectedweather.adapters;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -152,8 +153,20 @@ public class SwingListModelAsList<T> implements List<T>
 	@Override
 	public boolean retainAll(Collection<?> c)
 	{
-		// TODO Auto-generated method stub
-		return false;
+		int currItemIndex = 0;
+		int lastSize = listModel.size();
+		while (currItemIndex < listModel.size())
+		{
+			if ( !c.contains(listModel.get(currItemIndex)) )
+			{
+				listModel.remove(currItemIndex);
+			}
+			else
+			{
+				currItemIndex++;
+			}
+		}
+		return listModel.size() != lastSize;
 	}
 
 	@Override
@@ -171,8 +184,19 @@ public class SwingListModelAsList<T> implements List<T>
 	@Override
 	public List<T> subList(int fromIndex, int toIndex)
 	{
-		// TODO Auto-generated method stub
-		return null;
+		if (fromIndex <= toIndex)
+		{
+			ArrayList<T> list = new ArrayList<T>();
+			for (int currIndex = fromIndex; currIndex < toIndex; currIndex++)
+			{
+				list.add(listModel.getElementAt(currIndex));
+			}
+			return list;
+		}
+		else
+		{
+			throw new IndexOutOfBoundsException();
+		}
 	}
 
 	@Override

@@ -7,14 +7,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
 import javax.swing.JOptionPane;
 import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
@@ -81,37 +73,6 @@ public class Utils
 		return (T)currJSONObject.get(keys[lastIndex]);
 	}
 	
-	public static float round(float value, int precision)
-	{
-	    int scale = (int)Math.pow(10, precision);
-	    return Math.round(value * scale) / (float)scale;
-	}
-	
-	public static double round(double value, int precision)
-	{
-	    int scale = (int)Math.pow(10, precision);
-	    return Math.round(value * scale) / (double)scale;
-	}
-	
-	public static <T> T timeoutTask(Callable<T> callable, int timeout, TimeUnit timeUnit, Consumer<Future<T>> callback) throws TimeoutException, InterruptedException, ExecutionException
-	{
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		Future<T> future = executor.submit(callable);
-		try
-		{
-			return future.get(timeout, timeUnit);
-        }
-		catch (TimeoutException ex)
-		{
-			callback.accept(future);
-			return null;
-        }
-		catch (InterruptedException | ExecutionException ex)
-		{
-			throw ex;
-		}
-	}
-	
 	public static void showAudioMessageDialog(String message, String title, int messageType)
 	{
 		playDialogAudio(messageType);
@@ -131,19 +92,19 @@ public class Utils
 		{
 			case JOptionPane.ERROR_MESSAGE:
 				soundPropertyName = "win.sound.hand";
-			break;
+				break;
 			case JOptionPane.INFORMATION_MESSAGE:
 				soundPropertyName = "win.sound.asterisk";
-			break;
+				break;
 			case JOptionPane.WARNING_MESSAGE:
 				soundPropertyName = "win.sound.exclamation";
-			break;
+				break;
 			case JOptionPane.QUESTION_MESSAGE:
 				soundPropertyName = "win.sound.question";
-			break;
+				break;
 			default:
 				soundPropertyName = null;
-			break;
+				break;
 		}
 		if (soundPropertyName != null)
 		{
@@ -163,6 +124,27 @@ public class Utils
 	public static double fahrenheitToCelsius(double fahrenheit)
 	{
 		return (fahrenheit - 32) * 5.0 / 9.0;
+	}
+	
+	public static float round(float value, int precision)
+	{
+	    int scale = (int)Math.pow(10, precision);
+	    return Math.round(value * scale) / (float)scale;
+	}
+	
+	public static double round(double value, int precision)
+	{
+	    int scale = (int)Math.pow(10, precision);
+	    return Math.round(value * scale) / (double)scale;
+	}
+	
+	public static void sleep(long millis)
+	{
+		try
+		{
+			Thread.sleep(millis);
+		}
+		catch (InterruptedException e) { }
 	}
 	
 }

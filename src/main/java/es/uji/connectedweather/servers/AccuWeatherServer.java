@@ -1,7 +1,7 @@
 package es.uji.connectedweather.servers;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.net.ConnectException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -20,7 +20,7 @@ public class AccuWeatherServer implements IWeatherServer
 	private static final String CURRENT_WEATHER_URL = BASE_URL + "currentconditions/v1/";
 	private static final String FORECAST_URL = BASE_URL + "forecasts/v1/daily/5day/";
 	private static final String HISTORICAL_URL = BASE_URL + "currentconditions/v1/";
-	private static final String API_KEY = "ARGF19snszPfoVqGMdo1O1f1AGxO8KYI"; //"5pxm7mYRSnFwGKkbmYqPwz5pdNIU6ECZ"; //"MvwPACViq8icqwPNkBBAWSE9YeP4RmUe";
+	private static final String API_KEY = "MvwPACViq8icqwPNkBBAWSE9YeP4RmUe"; //"5pxm7mYRSnFwGKkbmYqPwz5pdNIU6ECZ"; //"ARGF19snszPfoVqGMdo1O1f1AGxO8KYI";
 	private static final String ALERTS_URL = BASE_URL + "alerts/v1/";
 	
 	private class CityInfo
@@ -55,7 +55,10 @@ public class AccuWeatherServer implements IWeatherServer
 	@Override
 	public Map<String, String> getCurrentWeather(String city)
 	{
-		if (city == null) throw new NullPointerException();
+		if (city == null)
+		{
+			throw new NullPointerException();
+		}
 		HashMap<String, String> map = new HashMap<String, String>();
 		try
 		{
@@ -74,6 +77,10 @@ public class AccuWeatherServer implements IWeatherServer
 				return null;
 			}
 		}
+		catch (ConnectException ex) //Connection timeout
+		{
+			return null;
+		}
 		catch (IOException | ParseException ex)
 		{
 			ex.printStackTrace();
@@ -82,7 +89,7 @@ public class AccuWeatherServer implements IWeatherServer
 		return map;
 	}
 	
-	private CityInfo queryCity(String city) throws MalformedURLException, IOException, ParseException
+	private CityInfo queryCity(String city) throws IOException, ParseException
 	{
 		String response = Utils.makeGETRequest(new URL(CITY_KEY_URL + API_KEY + "&q=" + city));
 		JSONArray citiesArray = Utils.parseJSON(response);
@@ -96,12 +103,12 @@ public class AccuWeatherServer implements IWeatherServer
 		map.put("condition", data.get("WeatherText").toString());
 		map.put("temperature", getTemperatureString(data, "Temperature"));
 		map.put("humidity", data.get("RelativeHumidity").toString());
-		map.put("wind", Utils.readJSONObject(windData, "Speed", "Metric", "Value").toString());
+		map.put("wind", Utils.readJSONObject(windData, "Speed", "Metric", "Value") + " km/h");
 		map.put("wind_degree", Utils.readJSONObject(windData, "Direction", "Degrees").toString());
-		map.put("visibility", Utils.readJSONObject(data, "Visibility", "Metric", "Value").toString());
+		map.put("visibility", Utils.readJSONObject(data, "Visibility", "Metric", "Value") + " km");
 		map.put("clouds", data.get("CloudCover").toString());
-		map.put("pressure", Utils.readJSONObject(data, "Pressure", "Metric", "Value").toString());
-		map.put("precipitation", Utils.readJSONObject(data, "PrecipitationSummary", "Precipitation", "Metric", "Value").toString());
+		map.put("pressure", Utils.readJSONObject(data, "Pressure", "Metric", "Value") + " mb");
+		map.put("precipitation", Utils.readJSONObject(data, "PrecipitationSummary", "Precipitation", "Metric", "Value") + " mm");
 		map.put("min_temp", getTemperatureString(pastTemperature, "Minimum"));
 		map.put("max_temp", getTemperatureString(pastTemperature, "Maximum"));
 	}
@@ -113,14 +120,17 @@ public class AccuWeatherServer implements IWeatherServer
 		{
 			temperature = Utils.celsiusToFahrenheit(temperature);
 		}
-		return Double.toString(Utils.round(temperature, 1));
+		return Utils.round(temperature, 1) + units.getSymbol();
 	}
 	
 	@Override
 	@SuppressWarnings("unchecked")
 	public Map<String, String>[] getWeatherForecast(String city)
 	{
-		if (city == null) throw new NullPointerException();
+		if (city == null)
+		{
+			throw new NullPointerException();
+		}
 		HashMap<String, String>[] maps = new HashMap[5];
 		try
 		{
@@ -155,16 +165,16 @@ public class AccuWeatherServer implements IWeatherServer
 					map.put("city", cityInfo.name);
 					map.put("country", cityInfo.country);
 					map.put("condition", weatherData.get("IconPhrase").toString());
-					map.put( "temperature", Double.toString(Utils.round((minTemperature + maxTemperature) / 2, 1)) );
+					map.put("temperature", Utils.round((minTemperature + maxTemperature) / 2, 1) + units.getSymbol());
 					map.put("humidity", "N/A");
-					map.put("wind", Utils.readJSONObject(windData, "Speed", "Value").toString());
+					map.put("wind", Utils.readJSONObject(windData, "Speed", "Value") + " km/h");
 					map.put("wind_degree", Utils.readJSONObject(windData, "Direction", "Degrees").toString());
 					map.put("visibility", "N/A");
 					map.put("clouds", weatherData.get("CloudCover").toString());
 					map.put("pressure", "N/A");
-					map.put("precipitation", Utils.readJSONObject(weatherData, "TotalLiquid", "Value").toString());
-					map.put( "min_temp", Double.toString(Utils.round(minTemperature, 1)) );
-					map.put( "max_temp", Double.toString(Utils.round(maxTemperature, 1)) );
+					map.put("precipitation", Utils.readJSONObject(weatherData, "TotalLiquid", "Value") + " mm");
+					map.put("min_temp", Utils.round(minTemperature, 1) + units.getSymbol());
+					map.put("max_temp", Utils.round(maxTemperature, 1) + units.getSymbol());
 					maps[currDayIndex] = map;
 				}
 			}
@@ -172,6 +182,10 @@ public class AccuWeatherServer implements IWeatherServer
 			{
 				return null;
 			}
+		}
+		catch (ConnectException ex) //Connection timeout
+		{
+			return null;
 		}
 		catch (IOException | ParseException ex)
 		{
@@ -184,7 +198,10 @@ public class AccuWeatherServer implements IWeatherServer
 	@Override
 	public Map<String, String> getHistoricalData(String city, LocalDate date)
 	{
-		if (city == null) throw new NullPointerException();
+		if (city == null)
+		{
+			throw new NullPointerException();
+		}
 		if ( date.equals(LocalDate.now().minusDays(1)) )
 		{
 			HashMap<String, String> map = new HashMap<String, String>();
@@ -206,6 +223,10 @@ public class AccuWeatherServer implements IWeatherServer
 					return null;
 				}
 			}
+			catch (ConnectException ex) //Connection timeout
+			{
+				return null;
+			}
 			catch (IOException | ParseException ex)
 			{
 				ex.printStackTrace();
@@ -219,7 +240,10 @@ public class AccuWeatherServer implements IWeatherServer
 	@Override
 	public Map<String, String> getAlerts(String city)
 	{
-		if (city == null) throw new NullPointerException();
+		if (city == null)
+		{
+			throw new NullPointerException();
+		}
 		HashMap<String, String> map = new HashMap<String, String>();
 		try
 		{
@@ -238,6 +262,10 @@ public class AccuWeatherServer implements IWeatherServer
 			{
 				return null;
 			}
+		}
+		catch (ConnectException ex) //Connection timeout
+		{
+			return null;
 		}
 		catch (IOException | ParseException ex)
 		{

@@ -15,6 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -29,8 +35,8 @@ import javax.swing.table.DefaultTableModel;
 import es.uji.connectedweather.TemperatureUnit;
 import es.uji.connectedweather.Utils;
 import es.uji.connectedweather.adapters.SwingListModelAsList;
-import es.uji.connectedweather.persistance.FileFavouriteCityPersistance;
-import es.uji.connectedweather.persistance.IFavouriteCityPersistance;
+import es.uji.connectedweather.persistance.CitiesFilePersistance;
+import es.uji.connectedweather.persistance.ICitiesPersistance;
 import es.uji.connectedweather.servers.AccuWeatherServer;
 import es.uji.connectedweather.servers.ApixuServer;
 import es.uji.connectedweather.servers.IWeatherServer;
@@ -39,86 +45,26 @@ import es.uji.connectedweather.servers.OpenWeatherMapServer;
 public class MainFrame
 {
 	
-	@SuppressWarnings("unused")
-	private static final int TIMEOUT_SECONDS = 5;
+	public static final int FORECAST_DAYS = 5;
+	private static final String[] WEATHERDATA_KEYS = { //Using this vector to iterate over the keys in that order
+		"date", "city", "country",
+		"temperature", "min_temp", "max_temp",
+		"condition", "pressure", "humidity",
+		"precipitation", "wind", "wind_degree",
+		"visibility", "clouds"
+	};
+	private static final int QUERY_TIMEOUT = 5;
 	private static final Color DARK_GREEN = new Color(0, 192, 0);
 	private static final Color DARK_ORANGE = new Color(255, 160, 0);
-	private IFavouriteCityPersistance favouriteCitiesPersistance;
-	public IFavouriteCityPersistance getFavouriteCitiesPersistance() {
-		return favouriteCitiesPersistance;
-	}
-
-	public void setFavouriteCitiesPersistance(IFavouriteCityPersistance favouriteCitiesPersistance) {
-		this.favouriteCitiesPersistance = favouriteCitiesPersistance;
-	}
-
-	public Map<String, String>[] getLoadedMaps() {
-		return loadedMaps;
-	}
-
-	public void setLoadedMaps(Map<String, String>[] loadedMaps) {
-		this.loadedMaps = loadedMaps;
-	}
-
-	public List<String> getFavouriteCitiesList() {
-		return favouriteCitiesList;
-	}
-
-	public void setFavouriteCitiesList(List<String> favouriteCitiesList) {
-		this.favouriteCitiesList = favouriteCitiesList;
-	}
-
-	public SettingsDialog getSettingsDialog() {
-		return settingsDialog;
-	}
-
-	public void setSettingsDialog(SettingsDialog settingsDialog) {
-		this.settingsDialog = settingsDialog;
-	}
-
-	public IWeatherServer getUsingServer() {
-		return usingServer;
-	}
-
-	public void setUsingServer(IWeatherServer usingServer) {
-		this.usingServer = usingServer;
-	}
-
-	public List<String> getParameterList() {
-		return parameterList;
-	}
-
-	public void setParameterList(List<String> parameterList) {
-		this.parameterList = parameterList;
-	}
-
-	public IWeatherServer[] getServers() {
-		return servers;
-	}
-
-	public void setServers(IWeatherServer[] servers) {
-		this.servers = servers;
-	}
-
-	public int getLastPanelIndex() {
-		return lastPanelIndex;
-	}
-
-	public void setLastPanelIndex(int lastPanelIndex) {
-		this.lastPanelIndex = lastPanelIndex;
-	}
-
-	public void setDesign(MainFrameDesign design) {
-		this.design = design;
-	}
-
+	private ICitiesPersistance favouritesPersistance;
 	private Map<String, String>[] loadedMaps; //Using an array to avoid multiple variables for each service
-	private List<String> favouriteCitiesList;
 	private SettingsDialog settingsDialog;
+	private List<String> favouritesList;
 	private IWeatherServer usingServer;
 	private List<String> parameterList;
 	private IWeatherServer[] servers;
 	private MainFrameDesign design;
+	private Thread queryThread;
 	private int lastPanelIndex;
 	
 	@SuppressWarnings("unchecked")
@@ -126,10 +72,10 @@ public class MainFrame
 	{
 		JComboBox<String> serversComboBox;
 		this.design = new MainFrameDesign(this);
-		this.loadedMaps = new Map[1 + 5 + 1 + 1];
 		this.parameterList = new ArrayList<String>();
 		this.settingsDialog = new SettingsDialog(this);
-		this.favouriteCitiesPersistance = new FileFavouriteCityPersistance();
+		this.loadedMaps = new Map[1 + FORECAST_DAYS + 1 + 1];
+		this.favouritesPersistance = new CitiesFilePersistance("favourites.txt");
 		this.servers = new IWeatherServer[] {
 			new OpenWeatherMapServer(),
 			new AccuWeatherServer(),
@@ -145,10 +91,10 @@ public class MainFrame
 			@Override
 			public void run()
 			{
-				favouriteCitiesList = new SwingListModelAsList<String>(design.getFavouriteCitiesList());
+				favouritesList = new SwingListModelAsList<String>(design.getFavouriteCitiesList());
 				try
 				{
-					favouriteCitiesPersistance.loadFavouriteCities(favouriteCitiesList);
+					favouritesPersistance.load(favouritesList);
 				}
 				catch (FileNotFoundException ex) { }
 				catch (IOException ex)
@@ -160,11 +106,47 @@ public class MainFrame
 		this.usingServer = this.servers[0];
 	}
 	
+	
+	public ICitiesPersistance getFavouritesPersistance()
+	{
+		return favouritesPersistance;
+	}
+
+	public void setFavouritesPersistance(ICitiesPersistance favouritesPersistance)
+	{
+		this.favouritesPersistance = favouritesPersistance;
+	}
+	
+	public List<String> getFavouritesList()
+	{
+		return favouritesList;
+	}
+
+	public void setFavouritesList(List<String> favouritesList)
+	{
+		this.favouritesList = favouritesList;
+	}
+	
+	public IWeatherServer getUsingServer()
+	{
+		return usingServer;
+	}
+
+	public void setUsingServer(IWeatherServer usingServer)
+	{
+		this.usingServer = usingServer;
+	}
+	
+	public List<String> getParameterList()
+	{
+		return parameterList;
+	}
+	
 	public MainFrameDesign getDesign()
 	{
 		return design;
 	}
-	
+
 	public void serversComboBox_SelectionChanged(ActionEvent e)
 	{
 		usingServer = this.servers[design.getServersComboBox().getSelectedIndex()];
@@ -173,95 +155,131 @@ public class MainFrame
 	public void citySearchBox_TextChanged(DocumentEvent e)
 	{
 		boolean enable = !design.getCitySearchBox().getText().equals("");
-		design.getSearchCityButton().setEnabled(enable);
 		enableColoredButton(design.getAddFavouriteCityButton(), DARK_GREEN, enable);
+		design.getQueryCityButton().setEnabled(enable);
 	}
 	
 	private void enableColoredButton(JButton button, Color foreColor, boolean enabled)
 	{
-		button.setEnabled(enabled);
 		button.setForeground(enabled ? foreColor : Color.GRAY);
+		button.setEnabled(enabled);
 	}
 	
-	public void searchCityButton_Click(ActionEvent e)
+	public void queryCityButton_Click(ActionEvent e)
+	{
+		LocalDate selectedDate = design.getDatePicker().getDate();
+		JTextField citySearchBox = design.getCitySearchBox();
+		String city = citySearchBox.getText();
+		queryThread = new Thread(() -> queryCityService(city, selectedDate));
+		design.getServersComboBox().setEnabled(false);
+		design.getQueryCityButton().setEnabled(false);
+		citySearchBox.setEnabled(false);
+		queryThread.start();
+	}
+	
+	private void queryCityService(String city, LocalDate selectedDate)
 	{
 		Map<String, String> map;
-		boolean enableSaveButton;
-		String city = design.getCitySearchBox().getText();
+		boolean querySuccessful;
 		switch (lastPanelIndex)
 		{
 			case 0:
-				map = getCurrentWeather(city, parameterList);
-				refreshTable(design.getCurrentWeatherDataTable(), map);
-				enableSaveButton = map != null;
-				loadedMaps[0] = map;
+				map = executeTimedQuery(() -> getCurrentWeather(city, parameterList));
+				querySuccessful = map != null;
+				if (querySuccessful)
+				{
+					loadedMaps[0] = map;
+				}
 				break;
 			case 1:
-				Map<String, String>[] maps = usingServer.getWeatherForecast(city);
-				for (int currDayIndex = 0; currDayIndex < maps.length; currDayIndex++)
+				Map<String, String>[] maps = executeTimedQuery(() -> usingServer.getWeatherForecast(city));
+				querySuccessful = maps != null;
+				if (querySuccessful)
 				{
-					refreshTable(design.getForecastDataTable(currDayIndex), maps[currDayIndex]);
-					loadedMaps[1 + currDayIndex] = maps[currDayIndex];
+					for (int currDayIndex = 0; currDayIndex < maps.length; currDayIndex++)
+					{
+						loadedMaps[1 + currDayIndex] = maps[currDayIndex];
+					}
 				}
-				enableSaveButton = maps != null;
+				else
+				{
+					showCityNotFoundMessage();
+				}
 				break;
 			case 2:
-				LocalDate selectedDate = design.getDatePicker().getDate();
 				map = tryLoadLocalHistoricalData(city, selectedDate);
 				if (map == null && Utils.showAudioConfirmDialog("No historical data exists locally.\n\nDo you wish to try and query the selected server for it?", "OPTION: Query server?",
 						 										JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION)
 				{
-					map = usingServer.getHistoricalData(city, selectedDate);
+					map = executeTimedQuery(() -> usingServer.getHistoricalData(city, selectedDate));
 					if (map == null)
 					{
-						Utils.showAudioMessageDialog("The selected server does not support this functionality or an invalid date was supplied.",
-													 "INFO: Unsupported functionality or invalid date", JOptionPane.WARNING_MESSAGE);
+						Utils.showAudioMessageDialog("The selected server does not support this functionality or an invalid city/date was supplied.",
+													 "INFO: Unsupported functionality or invalid city/date", JOptionPane.WARNING_MESSAGE);
 					}
 				}
-				refreshTable(design.getHistoricalDataTable(), map);
-				enableSaveButton = map != null;
-				loadedMaps[1 + 5] = map;
+				querySuccessful = map != null;
+				if (querySuccessful)
+				{
+					loadedMaps[1 + FORECAST_DAYS] = map;
+				}
 				break;
 			default: //case 3
-				map = usingServer.getAlerts(city);
-				if (map == null)
+				map = executeTimedQuery(() -> usingServer.getAlerts(city));
+				querySuccessful = map != null;
+				if (querySuccessful)
 				{
-					Utils.showAudioMessageDialog("The selected server does not support this functionality.",
-												 "INFO: Unsupported functionality", JOptionPane.WARNING_MESSAGE);
+					loadedMaps[1 + FORECAST_DAYS + 1] = map;
 				}
-				refreshTable(design.getAlertDataTable(), map);
-				enableSaveButton = map != null;
-				loadedMaps[1 + 5 + 1] = map;
+				else
+				{
+					Utils.showAudioMessageDialog("The selected server does not support this functionality or an invalid city was supplied.",
+												 "INFO: Unsupported functionality or invalid city", JOptionPane.WARNING_MESSAGE);
+				}
 				break;
 		}
-		design.getSaveWeatherDataButton().setEnabled(enableSaveButton);
+		SwingUtilities.invokeLater(() -> handleQueryDone(querySuccessful));
 	}
 	
-	@SuppressWarnings("unused")
-	private Map<String, String> executeTaskAndHandleTimeout(Callable<Map<String, String>> task)
+	private <T> T executeTimedQuery(Callable<T> task)
 	{
-		/*
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		Future<T> future = executor.submit(task);
 		try
 		{
-			//return Utils.timeoutTask(task, TIMEOUT_SECONDS, TimeUnit.SECONDS, false);
-		}
-		catch (TimeoutException ex)
-		{
-			if (Utils.showAudioConfirmDialog("The server is taking to long to respond.\n\nWould you like to switch servers?", "INFO: Server busy", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION)
+			try
 			{
-				//task.
+				return future.get(QUERY_TIMEOUT, TimeUnit.SECONDS);
 			}
-			return null;
+			catch (TimeoutException ex)
+			{
+				if (Utils.showAudioConfirmDialog("The server is taking too long to respond...\n\nWould you like to switch servers?", "INFO: Server busy",
+												 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.NO_OPTION)
+				{
+					return future.get(); //Let's wait until the query is actually done...
+				}
+				future.cancel(true);
+			}
 		}
 		catch (InterruptedException | ExecutionException ex)
 		{
-			ex.printStackTrace();
-			return null;
+			if (ex.getCause().getClass() == InvalidParameterException.class)
+			{
+				showCityNotFoundMessage();
+			}
+			else
+			{
+				ex.printStackTrace();
+			}
 		}
-		*/
 		return null;
 	}
 	
+	private void showCityNotFoundMessage()
+	{
+		Utils.showAudioMessageDialog("The server could not find the supplied city.", "ERROR: City not found", JOptionPane.WARNING_MESSAGE);
+	}
+
 	private Map<String, String> tryLoadLocalHistoricalData(String city, LocalDate date)
 	{
 		File historicalDataFile = new File("history" + File.separator + city + File.separator + date.toString() + ".txt");
@@ -282,18 +300,52 @@ public class MainFrame
 		}
 	}
 	
+	private void handleQueryDone(boolean querySucessful)
+	{
+		if (querySucessful)
+		{
+			switch (lastPanelIndex)
+			{
+				case 0:
+					refreshTable(design.getCurrentWeatherDataTable(), filterMap(loadedMaps[0], parameterList));
+					break;
+				case 1:
+					for (int currDayIndex = 0; currDayIndex < FORECAST_DAYS; currDayIndex++)
+					{
+						refreshTable(design.getForecastDataTable(currDayIndex), filterMap(loadedMaps[1 + currDayIndex], parameterList));
+					}
+					break;
+				case 2:
+					refreshTable(design.getHistoricalDataTable(), filterMap(loadedMaps[1 + FORECAST_DAYS], parameterList));
+					break;
+				default: //case 3
+					refreshTable(design.getAlertDataTable(), loadedMaps[1 + FORECAST_DAYS + 1]);
+					break;
+			}
+			design.getSaveWeatherDataButton().setEnabled(true);
+		}
+		design.getServersComboBox().setEnabled(true);
+		design.getQueryCityButton().setEnabled(true);
+		design.getCitySearchBox().setEnabled(true);
+	}
+	
 	private void refreshTable(JTable table, Map<String, String> map)
 	{
 		DefaultTableModel tableModel = (DefaultTableModel)table.getModel();
 		if (map != null)
 		{
+			String currValue;
 			int currRowIndex = 0;
 			tableModel.setRowCount(map.size());
-			for (String currKey : map.keySet())
+			for (String currKey : WEATHERDATA_KEYS)
 			{
-				tableModel.setValueAt(currKey, currRowIndex, 0);
-				tableModel.setValueAt(map.get(currKey), currRowIndex, 1);
-				currRowIndex++;
+				currValue = map.get(currKey);
+				if (currValue != null)
+				{
+					tableModel.setValueAt(currKey, currRowIndex, 0);
+					tableModel.setValueAt(map.get(currKey), currRowIndex, 1);
+					currRowIndex++;
+				}
 			}
 		}
 		else
@@ -305,7 +357,7 @@ public class MainFrame
 	public void addFavouriteCityButton_Click(ActionEvent e)
 	{
 		JTextField citySearchBox = design.getCitySearchBox();
-		favouriteCitiesList.add(citySearchBox.getText());
+		favouritesList.add(citySearchBox.getText());
 		citySearchBox.setText("");
 	}
 	
@@ -323,8 +375,8 @@ public class MainFrame
 		{
 			case 0: return loadedMaps[0];
 			case 1: return loadedMaps[1 + design.getForecastDayTabs().getSelectedIndex()];
-			case 2: return loadedMaps[1 + 5];
-			default: return loadedMaps[1 + 5 + 1];
+			case 2: return loadedMaps[1 + FORECAST_DAYS];
+			default: return loadedMaps[1 + FORECAST_DAYS + 1];
 		}
 	}
 	
@@ -347,7 +399,6 @@ public class MainFrame
 		editFavouriteCityBox.setEnabled(enable);
 		enableColoredButton(design.getEditFavouriteCityButton(), DARK_ORANGE, enable);
 		enableColoredButton(design.getRemoveFavouriteCityButton(), Color.RED, enable);
-		//TODO: Cambiar el servicio y simular click busqueda?
 	}
 	
 	public void editFavouriteCityBox_TextChanged(DocumentEvent e)
@@ -359,13 +410,13 @@ public class MainFrame
 	public void editFavouriteCityButton_Click(ActionEvent e)
 	{
 		String newCity = design.getEditFavouriteCityBox().getText();
-		favouriteCitiesList.set(design.getFavouriteCitiesList().getSelectedIndex(), newCity);
+		favouritesList.set(design.getFavouriteCitiesList().getSelectedIndex(), newCity);
 		design.getCitySearchBox().setText(newCity);
 	}
 	
 	public void removeFavouriteCityButton_Click(ActionEvent e)
 	{
-		favouriteCitiesList.remove(design.getFavouriteCitiesList().getSelectedIndex());
+		favouritesList.remove(design.getFavouriteCitiesList().getSelectedIndex());
 	}
 	
 	public void openSettingsButton_Click(ActionEvent e)
@@ -376,13 +427,9 @@ public class MainFrame
 	public void settingsDialog_OK()
 	{
 		SettingsDialogDesign settingsDialogDesign = settingsDialog.getDesign();
-		Map<String, String> loadedMap = getServiceLoadedMap();
 		updateParameterList(settingsDialogDesign);
 		setNewUnits(settingsDialogDesign);
-		if (loadedMap != null)
-		{
-			refreshServiceTable(loadedMap);
-		}
+		refreshServiceTables();
 	}
 	
 	private void updateParameterList(SettingsDialogDesign settingsDialogDesign)
@@ -407,24 +454,21 @@ public class MainFrame
 		}
 	}
 	
-	private void refreshServiceTable(Map<String, String> loadedMap)
+	private void refreshServiceTables()
 	{
-		JTable refresingTable;
-		if (lastPanelIndex != 3)
+		safeTableRefresh(design.getCurrentWeatherDataTable(), loadedMaps[0]);
+		for (int currDayIndex = 0; currDayIndex < FORECAST_DAYS; currDayIndex++)
 		{
-			switch (lastPanelIndex)
-			{
-				case 0:
-					refresingTable = design.getCurrentWeatherDataTable();
-					break;
-				case 1:
-					refresingTable = design.getForecastDataTable(design.getForecastDayTabs().getSelectedIndex());
-					break;
-				default: //case 2
-					refresingTable = design.getHistoricalDataTable();
-					break;
-			}
-			refreshTable(refresingTable, filterMap(loadedMap, parameterList));
+			safeTableRefresh(design.getForecastDataTable(currDayIndex), loadedMaps[1 + currDayIndex]);
+		}
+		safeTableRefresh(design.getHistoricalDataTable(), loadedMaps[1 + FORECAST_DAYS]);
+	}
+	
+	private void safeTableRefresh(JTable table, Map<String, String> loadedMap)
+	{
+		if (loadedMap != null)
+		{
+			refreshTable(table, filterMap(loadedMap, parameterList));
 		}
 	}
 	
@@ -432,12 +476,12 @@ public class MainFrame
 	{
 		Map<String, String> map = getServiceLoadedMap();
 		String cityFolderPath = "history" + File.separator + map.get("city");
-		File cityFolder = new File(cityFolderPath);
 		File weatherFile = new File(cityFolderPath + File.separator + map.get("date") + ".txt");
+		File cityFolder = new File(cityFolderPath);
 		cityFolder.mkdirs();
 		try (FileWriter weatherDataWriter = new FileWriter(weatherFile))
 		{
-			for (String currKey : map.keySet())
+			for (String currKey : WEATHERDATA_KEYS)
 			{
 				weatherDataWriter.write(currKey + "=" + map.get(currKey) + "\r\n"); //\r\n to properly display it on Window's notepad
 			}
@@ -457,12 +501,17 @@ public class MainFrame
 		}
 	}
 	
-	public void setServer(IWeatherServer server) {
-		if (server == null) throw new InvalidParameterException();
+	public void setServer(IWeatherServer server)
+	{
+		if (server == null)
+		{
+			throw new InvalidParameterException();
+		}
 		usingServer = server;
 	}
 	
-	public Map<String, String> getCurrentWeather(String city, List<String> params) {
+	public Map<String, String> getCurrentWeather(String city, List<String> params)
+	{
 		if (city == null || params == null)
 		{
 			throw new NullPointerException();
@@ -506,10 +555,13 @@ public class MainFrame
 	
 	public void mainFrame_Closing(WindowEvent e)
 	{
-		if (favouriteCitiesList == null) throw new InvalidParameterException();
+		if (favouritesList == null)
+		{
+			throw new InvalidParameterException();
+		}
 		try
 		{
-			favouriteCitiesPersistance.saveFavouriteCities(favouriteCitiesList);
+			favouritesPersistance.save(favouritesList);
 		}
 		catch (IOException ex)
 		{

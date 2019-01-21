@@ -16,26 +16,28 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import es.uji.connectedweather.frames.MainFrame;
-import es.uji.connectedweather.persistance.IFavouriteCityPersistance;
+import es.uji.connectedweather.persistance.ICitiesPersistance;
 import es.uji.connectedweather.servers.IWeatherServer;
 
-public class MainFrameUnityTest {
+public class MainFrameUnitTest
+{
 
 	//Class under test
 	private MainFrame mainFrame;
 	//Mocks for class under test
 	private IWeatherServer mockServer;
-	private IFavouriteCityPersistance mockPersistance;
+	private ICitiesPersistance mockPersistance;
 	//Another parameters for class under test
 	private String city;
 	private List<String> params;
 	private List<String> favCities;
 	
 	@Before
-	public void setConfiguration() {
+	public void setConfiguration()
+	{
 		//Creating mocks
 		mockServer = Mockito.mock(IWeatherServer.class);
-		mockPersistance = Mockito.mock(IFavouriteCityPersistance.class);
+		mockPersistance = Mockito.mock(ICitiesPersistance.class);
 		//init variables
 		city = "Madrid";
 		params = new ArrayList<String>();
@@ -43,14 +45,15 @@ public class MainFrameUnityTest {
 		//Create class under test
 		mainFrame = new MainFrame();
 		mainFrame.setServer(mockServer);
-		mainFrame.setFavouriteCitiesPersistance(mockPersistance);
-		mainFrame.setFavouriteCitiesList(favCities);
+		mainFrame.setFavouritesPersistance(mockPersistance);
+		mainFrame.setFavouritesList(favCities);
 	}
 	
 	//Testing setServer
 	
 	@Test (expected=InvalidParameterException.class)
-	public void setServer_null_IllegalArgumentException() {
+	public void setServer_null_IllegalArgumentException()
+	{
 		mainFrame.setServer(null);
 		fail("Expected InvalidParameterException");
 	}
@@ -58,7 +61,8 @@ public class MainFrameUnityTest {
 	//Testing getCurrentWeather
 	
 	@Test
-	public void getCurrentWeather_normal_ok(){
+	public void getCurrentWeather_normal_ok()
+	{
 		//Init variables
 		Map<String, String> dev = new HashMap<String, String>();
 		dev.put("p", "p");
@@ -72,7 +76,8 @@ public class MainFrameUnityTest {
 	}
 	
 	@Test
-	public void getCurrentWeather_lessParams_ok(){
+	public void getCurrentWeather_lessParams_ok()
+	{
 		//Init variables
 		Map<String, String> dev = new HashMap<String, String>();
 		dev.put("p", "p");
@@ -89,7 +94,8 @@ public class MainFrameUnityTest {
 	}
 	
 	@Test(expected=InvalidParameterException.class)
-	public void getCurrentWeather_invalidCity_InvalidParameterException(){
+	public void getCurrentWeather_invalidCity_InvalidParameterException()
+	{
 		//Set configuration
 		Mockito.when(mockServer.getCurrentWeather(city)).thenReturn(null);
 		//Do test
@@ -98,7 +104,8 @@ public class MainFrameUnityTest {
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void getCurrentWeather_nullCity_nullPointerException() {
+	public void getCurrentWeather_nullCity_nullPointerException()
+	{
 		city = null;
 		params.add("temperature");
 		mainFrame.getCurrentWeather(city, params);
@@ -106,7 +113,8 @@ public class MainFrameUnityTest {
 	}
 	
 	@Test(expected=InvalidParameterException.class)
-	public void getCurrentWeather_invalidCity_invalidParameterException() {
+	public void getCurrentWeather_invalidCity_invalidParameterException()
+	{
 		String city = "kjhdfjkd";
 		params.add("temperature");
 		mainFrame.getCurrentWeather(city, params);
@@ -114,80 +122,95 @@ public class MainFrameUnityTest {
 	}
 	
 	@Test(expected=NullPointerException.class)
-	public void getCurrentWeather_nullParameters_nullPointerException(){
+	public void getCurrentWeather_nullParameters_nullPointerException()
+	{
 		params = null;
 		mainFrame.getCurrentWeather(city, params);
 		fail("Expected NullPointerException");
 	}
 	
 	@Test
-	public void getCurrentWeather_emptyParams_returnAll() {
+	public void getCurrentWeather_emptyParams_returnAll()
+	{
 		assertNotNull(mainFrame.getCurrentWeather(city, params));
 	}
 	
 	//Testing mainFrame_Closing
 	
 	@Test
-	public void mainFrameClosing_normal_ok(){
+	public void mainFrameClosing_normal_ok()
+	{
 		//Init variables
 		favCities.add(city);
 		//Do test
 		mainFrame.mainFrame_Closing(null);
-		try {
-			Mockito.verify(mockPersistance).saveFavouriteCities(favCities);
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Exception throwed");
+		try
+		{
+			Mockito.verify(mockPersistance).save(favCities);
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+			fail("Exception thrown");
 		}
 	}
 	
 	@Test
-	public void mainFrameClosing_emptyFav_ok(){
+	public void mainFrameClosing_emptyFav_ok()
+	{
 		//Do test
 		mainFrame.mainFrame_Closing(null);
-		try {
-			Mockito.verify(mockPersistance).saveFavouriteCities(favCities);
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("Exception throwed");
+		try
+		{
+			Mockito.verify(mockPersistance).save(favCities);
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
+			fail("Exception thrown");
 		}
 	}
 	
 	@Test (expected = NullPointerException.class)
-	public void mainFrameClosing_nullPersistance_NullPointerException(){
+	public void mainFrameClosing_nullPersistance_NullPointerException()
+	{
 		//Init variables
 		favCities.add(city);
 		//Set configuration
-		mainFrame.setFavouriteCitiesPersistance(null);
+		mainFrame.setFavouritesPersistance(null);
 		//Do test
 		mainFrame.mainFrame_Closing(null);
 		fail("Expected NullPointerException");
 	}
 	
 	@Test
-	public void mainFrameClosing_invalidFile_None(){
+	public void mainFrameClosing_invalidFile_None()
+	{
 		//Init variables
 		favCities.add(city);
-		try {
+		try
+		{
 			//Set configuration
-			Mockito.doThrow(IOException.class).when(mockPersistance).saveFavouriteCities(favCities);
+			Mockito.doThrow(IOException.class).when(mockPersistance).save(favCities);
 			//Do test
 			mainFrame.mainFrame_Closing(null);
-		} catch (Exception e) {
-			e.printStackTrace();
+		}
+		catch (Exception ex)
+		{
+			ex.printStackTrace();
 			fail("No Exception expected");
 		}
 	}
 	
 	@Test (expected = InvalidParameterException.class)
-	public void mainFrameClosing_nullFavourites_invalidParameterException(){
+	public void mainFrameClosing_nullFavourites_invalidParameterException()
+	{
 		//Set configuration
-		mainFrame.setFavouriteCitiesList(null);
+		mainFrame.setFavouritesList(null);
 		//Do test
 		mainFrame.mainFrame_Closing(null);
 		fail("Expected InvalidParameterException");
 	}
-	
 	
 	//Init variables
 	//Set configuration
